@@ -1,5 +1,17 @@
+"use client"
+
 import { DemoContent } from "@/types/database"
-import { Phone, MapPin, Clock, Star, Sparkles, ArrowUpRight } from "lucide-react"
+import { beautyHeading, beautyBody } from "@/lib/fonts"
+import { getContrastTextColor } from "@/lib/templates/colorUtils"
+import TemplateNavbar from "./common/TemplateNavbar"
+import TemplateSection from "./common/TemplateSection"
+import ImageWithFallback from "./common/ImageWithFallback"
+import PriceList from "./common/PriceList"
+import OpeningHoursCard from "./common/OpeningHoursCard"
+import ReviewsCard from "./common/ReviewsCard"
+import TemplateFooter from "./common/TemplateFooter"
+import MobileStickyBar from "./common/MobileStickyBar"
+import { Sparkles, Star, Clock, MapPin, Feather, Heart, Flower2, ShieldCheck } from "lucide-react"
 
 export default function BeautyTemplate({
   content,
@@ -9,236 +21,320 @@ export default function BeautyTemplate({
   isPreview?: boolean
 }) {
   const primaryColor = content.primary_color || "#be185d"
+  const ctaTextColor = getContrastTextColor(primaryColor)
+
+  const navLinks = [
+    { label: "L'Institut", href: "#apropos" },
+    ...(content.services_or_menu && content.services_or_menu.length > 0
+      ? [{ label: "Prestations", href: "#prestations" }]
+      : []),
+    ...(content.gallery_images && content.gallery_images.length > 0
+      ? [{ label: "Galerie", href: "#galerie" }]
+      : []),
+    { label: "Avis", href: "#avis" },
+    { label: "Horaires & Accès", href: "#horaires" },
+  ]
+
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${content.business_name} ${content.address}`
+  )}`
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-pink-600 selection:text-white pb-24">
-      {/* BARRE FLOTTANTE MOBILE */}
-      <div
-        className={`${
-          isPreview ? "absolute" : "fixed"
-        } bottom-0 left-0 right-0 z-40 bg-stone-900/95 backdrop-blur-md border-t border-stone-800 p-3 sm:hidden flex items-center gap-2`}
-      >
-        <a
-          href={isPreview ? "#" : `tel:${content.phone}`}
-          style={{ backgroundColor: primaryColor }}
-          className="flex-1 h-12 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
-        >
-          <Phone className="w-4 h-4" />
-          <span>Réserver un créneau</span>
-        </a>
-        <a
-          href={
-            isPreview
-              ? "#"
-              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  content.business_name + " " + content.address
-                )}`
-          }
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-12 h-12 rounded-xl bg-stone-850 border border-stone-750 flex items-center justify-center text-stone-200 shrink-0 active:scale-95 transition-transform"
-          title="Itinéraire"
-        >
-          <MapPin className="w-5 h-5" />
-        </a>
-      </div>
+    <div
+      className={`min-h-screen bg-[#faf8f5] text-stone-800 selection:bg-rose-200 selection:text-stone-900 ${beautyBody.className}`}
+    >
+      {/* 1. NAVBAR ÉLÉGANTE EN TONS CLAIRS */}
+      <TemplateNavbar
+        businessName={content.business_name}
+        tagline="Maison de Beauté & Soins Personnalisés"
+        phone={content.phone}
+        primaryColor={primaryColor}
+        icon={Flower2}
+        links={navLinks}
+        ctaLabel="Prendre RDV"
+        themeMode="light"
+        headingFontClass={beautyHeading.className}
+        isPreview={isPreview}
+      />
 
-      {/* HEADER ÉPURÉ */}
-      <header className="max-w-4xl mx-auto px-4 h-20 flex items-center justify-between border-b border-stone-900">
-        <div className="flex items-center gap-2">
-          <div
-            style={{ backgroundColor: primaryColor }}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-          >
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <span className="font-extrabold text-lg tracking-tight text-white uppercase">
-            {content.business_name}
-          </span>
-        </div>
+      <main>
+        {/* 2. HERO SECTION DOUCE & RAFINÉE */}
+        <section className="relative overflow-hidden pt-8 pb-16 sm:pt-14 sm:pb-24 border-b border-stone-200/80">
+          <div className="max-w-6xl mx-auto px-5 sm:px-8 lg:px-12">
+            <div className="relative rounded-3xl overflow-hidden min-h-[460px] sm:min-h-[560px] flex flex-col justify-end p-6 sm:p-12 lg:p-16 border border-stone-200/80 shadow-2xl">
+              <ImageWithFallback
+                src={content.hero_image_url}
+                alt={content.business_name}
+                aspectRatioClass="absolute inset-0 w-full h-full"
+                className="absolute inset-0"
+                primaryColor={primaryColor}
+                fallbackIcon={Flower2}
+                priority
+                sizes="100vw"
+                overlay
+                overlayClassName="bg-gradient-to-t from-stone-950/85 via-stone-950/50 to-stone-900/10"
+              />
 
-        <a
-          href={isPreview ? "#" : `tel:${content.phone}`}
-          style={{ borderColor: primaryColor, color: primaryColor }}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold uppercase tracking-wider hover:bg-stone-900 transition-colors"
-        >
-          <Phone className="w-3.5 h-3.5" />
-          <span>{content.phone}</span>
-        </a>
-      </header>
+              <div className="relative z-10 max-w-2xl text-white">
+                <div className="flex flex-wrap items-center gap-2.5 mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/70 backdrop-blur-md border border-white/20 text-amber-200 text-xs font-bold shadow-xs">
+                    <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+                    <span>4.9 / 5 • Soins haute exigence</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/70 backdrop-blur-md border border-white/20 text-stone-200 text-xs font-medium shadow-xs">
+                    <Clock className="w-3.5 h-3.5 text-stone-300" />
+                    <span>Sur rendez-vous</span>
+                  </span>
+                </div>
 
-      {/* HERO SECTION LUMINEUSE */}
-      <section className="relative max-w-4xl mx-auto px-4 pt-6 pb-10 sm:pt-10 sm:pb-16">
-        <div className="relative rounded-3xl overflow-hidden min-h-[440px] sm:min-h-[500px] flex flex-col justify-end p-6 sm:p-10 shadow-2xl border border-stone-850">
-          <img
-            src={content.hero_image_url}
-            alt={content.business_name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/75 to-transparent" />
-
-          {/* Badges */}
-          <div className="relative z-10 flex flex-wrap items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-750 text-pink-300 text-xs font-bold">
-              <Star className="w-3 h-3 fill-pink-400 text-pink-400" />
-              <span>4.9 / 5 sur Google</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-800 text-stone-300 text-xs font-medium">
-              <Clock className="w-3 h-3 text-stone-400" />
-              <span>Sur rendez-vous</span>
-            </span>
-          </div>
-
-          <div className="relative z-10 max-w-xl">
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-              {content.business_name}
-            </h1>
-            <p className="text-sm sm:text-base text-stone-200 mt-2 font-medium leading-relaxed">
-              {content.tagline}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 mt-6">
-              <a
-                href={isPreview ? "#" : `tel:${content.phone}`}
-                style={{ backgroundColor: primaryColor }}
-                className="h-12 px-6 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl hover:opacity-95 transition-opacity active:scale-95"
-              >
-                <Phone className="w-4 h-4" />
-                <span>Prendre rendez-vous</span>
-              </a>
-
-              <a
-                href="#soins"
-                className="h-12 px-5 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-750 text-stone-200 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 backdrop-blur-md transition-colors"
-              >
-                <span>Les soins</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* INFOS INSTITUT */}
-      <section className="max-w-4xl mx-auto px-4 pb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-4 rounded-2xl bg-stone-900/90 border border-stone-850">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
-              Institut
-            </span>
-            <p className="text-xs font-semibold text-white leading-relaxed">
-              {content.address}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-stone-900/90 border border-stone-850">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
-              Horaires
-            </span>
-            <p className="text-xs font-semibold text-white leading-relaxed">
-              {content.opening_hours?.[0] || "10h00 - 19h00"}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-stone-900/90 border border-stone-850">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
-              Réservations
-            </span>
-            <p className="text-xs font-semibold text-white leading-relaxed">
-              {content.phone}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CARTE DES SOINS */}
-      <section id="soins" className="max-w-4xl mx-auto px-4 py-8 border-t border-stone-900">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-stone-400 block mb-1">
-              Prestations & Rituels
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Carte des Soins
-            </h2>
-          </div>
-          <span className="text-xs text-stone-400 hidden sm:block">
-            Gestes experts & produits professionnels
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {content.services_or_menu?.map((soin, idx) => (
-            <div
-              key={idx}
-              className="p-5 rounded-2xl bg-stone-900/80 border border-stone-850 flex flex-col justify-between hover:border-stone-750 transition-colors"
-            >
-              <div className="flex items-start justify-between gap-3 mb-1.5">
-                <h3 className="font-bold text-sm text-white">{soin.name}</h3>
-                <span
-                  style={{ color: primaryColor }}
-                  className="font-extrabold text-sm shrink-0"
+                <h1
+                  className={`text-3xl sm:text-5xl lg:text-6xl font-normal text-white tracking-tight leading-[1.1] ${beautyHeading.className}`}
                 >
-                  {soin.price}
-                </span>
+                  {content.business_name}
+                </h1>
+
+                {content.tagline && (
+                  <p className="mt-3 text-sm sm:text-lg text-stone-200 font-light leading-relaxed text-balance max-w-xl">
+                    {content.tagline}
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3.5 mt-8">
+                  {content.phone && (
+                    <a
+                      href={isPreview ? "#" : `tel:${content.phone}`}
+                      style={{ backgroundColor: primaryColor, color: ctaTextColor }}
+                      className="h-13 px-7 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-rose-950/20 active:scale-95 transition cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Prendre rendez-vous</span>
+                    </a>
+                  )}
+
+                  {content.services_or_menu && content.services_or_menu.length > 0 && (
+                    <a
+                      href="#prestations"
+                      className="h-13 px-6 rounded-2xl bg-white/90 hover:bg-white text-stone-900 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer shadow-md"
+                    >
+                      <span>Découvrir nos soins</span>
+                    </a>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-stone-400 leading-relaxed">{soin.desc}</p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* À PROPOS DE L'INSTITUT */}
-      <section className="max-w-4xl mx-auto px-4 py-10 sm:py-14">
-        <div className="p-6 sm:p-8 rounded-3xl bg-stone-900/50 border border-stone-850 flex flex-col md:flex-row items-center gap-6">
-          <div className="w-full md:w-5/12 rounded-2xl overflow-hidden aspect-square border border-stone-850">
-            <img
-              src={content.gallery_images?.[0] || content.hero_image_url}
-              alt={content.business_name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="w-full md:w-7/12 space-y-3">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block">
-              L&apos;Institut
-            </span>
-            <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              Un lieu calme pour prendre soin de vous.
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              {content.about}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* GALERIE */}
-      {content.gallery_images && content.gallery_images.length > 0 && (
-        <section className="max-w-4xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-3 gap-3">
-            {content.gallery_images.map((img, i) => (
-              <div
-                key={i}
-                className="aspect-square rounded-2xl overflow-hidden border border-stone-850"
-              >
-                <img
-                  src={img}
-                  alt={`Soin ${i + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
           </div>
         </section>
-      )}
 
-      {/* FOOTER */}
-      <footer className="max-w-4xl mx-auto px-4 pt-10 text-center text-xs text-stone-400">
-        <p className="font-semibold text-stone-300">
-          {content.business_name} • {content.address}
-        </p>
-        <p className="mt-1">Rendez-vous : {content.phone}</p>
-      </footer>
+        {/* 3. SECTION À PROPOS / BIEN-ÊTRE */}
+        {content.about && (
+          <TemplateSection
+            id="apropos"
+            badge="Philosophie"
+            title="Un havre de calme et de beauté sur-mesure"
+            subtitle="Chaque protocole est pensé comme un moment suspendu où douceur, gestuelle experte et produits d'exception se rencontrent."
+            primaryColor={primaryColor}
+            headingFontClass={beautyHeading.className}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              <div className="lg:col-span-7 space-y-6 text-sm sm:text-base text-stone-600 leading-relaxed max-w-prose">
+                <p className="text-stone-900 text-base sm:text-lg font-normal leading-relaxed">
+                  {content.about}
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-stone-200">
+                  <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                    <Feather className="w-5 h-5 text-rose-500 mb-2" />
+                    <h4 className="font-bold text-xs text-stone-900">Toucher expert</h4>
+                    <p className="text-[11px] text-stone-500 mt-0.5">Gestuelle apaisante</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                    <Flower2 className="w-5 h-5 text-rose-500 mb-2" />
+                    <h4 className="font-bold text-xs text-stone-900">Actifs naturels</h4>
+                    <p className="text-[11px] text-stone-500 mt-0.5">Cosmétiques ciblés</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                    <ShieldCheck className="w-5 h-5 text-rose-500 mb-2" />
+                    <h4 className="font-bold text-xs text-stone-900">Diagnostic peau</h4>
+                    <p className="text-[11px] text-stone-500 mt-0.5">Conseils sur-mesure</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5">
+                <ImageWithFallback
+                  src={content.gallery_images && content.gallery_images[0]}
+                  alt="Cabine de soin"
+                  aspectRatioClass="aspect-[4/3] rounded-3xl"
+                  className="rounded-3xl border border-stone-200 shadow-xl"
+                  primaryColor={primaryColor}
+                  fallbackIcon={Flower2}
+                />
+              </div>
+            </div>
+          </TemplateSection>
+        )}
+
+        {/* 4. SECTION PRESTATIONS AVEC CATÉGORIES & DURÉES */}
+        {content.services_or_menu && content.services_or_menu.length > 0 && (
+          <TemplateSection
+            id="prestations"
+            badge="Carte des soins"
+            title="Nos rituels & prestations"
+            subtitle="Prenez le temps d'un soin visage personnalisé, d'un massage délassant ou d'une mise en beauté complète."
+            primaryColor={primaryColor}
+            headingFontClass={beautyHeading.className}
+            className="bg-white/80 border-y border-stone-200/80"
+          >
+            <PriceList
+              items={content.services_or_menu}
+              primaryColor={primaryColor}
+              themeMode="light"
+              headingFontClass={beautyHeading.className}
+            />
+
+            <div className="mt-12 p-6 rounded-2xl bg-[#faf8f5] border border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-600">
+              <div className="flex items-center gap-2.5">
+                <Heart className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>
+                  Bons cadeaux disponibles pour tous nos soins et forfaits sur demande.
+                </span>
+              </div>
+              {content.phone && (
+                <a
+                  href={isPreview ? "#" : `tel:${content.phone}`}
+                  style={{ backgroundColor: primaryColor, color: ctaTextColor }}
+                  className="h-10 px-5 rounded-xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition"
+                >
+                  Prendre RDV au {content.phone}
+                </a>
+              )}
+            </div>
+          </TemplateSection>
+        )}
+
+        {/* 5. SECTION GALERIE DOUCE */}
+        {content.gallery_images && content.gallery_images.length > 0 && (
+          <TemplateSection
+            id="galerie"
+            badge="L'institut"
+            title="L'atmosphère en images"
+            subtitle="Poussez la porte de notre espace pensé pour votre détente."
+            primaryColor={primaryColor}
+            headingFontClass={beautyHeading.className}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {content.gallery_images.map((imgUrl, idx) => (
+                <div key={idx} className="group overflow-hidden rounded-2xl border border-stone-200 shadow-sm">
+                  <ImageWithFallback
+                    src={imgUrl}
+                    alt={`Espace beauté ${idx + 1}`}
+                    aspectRatioClass="aspect-[4/3]"
+                    primaryColor={primaryColor}
+                    fallbackIcon={Flower2}
+                  />
+                </div>
+              ))}
+            </div>
+          </TemplateSection>
+        )}
+
+        {/* 6. AVIS CLIENTS */}
+        <TemplateSection
+          id="avis"
+          badge="Témoignages"
+          title="Leurs moments de détente"
+          subtitle="Des clientes fidèles qui confient leur bien-être à notre institut toute l'année."
+          primaryColor={primaryColor}
+          headingFontClass={beautyHeading.className}
+          className="bg-stone-100/60 border-y border-stone-200/80"
+        >
+          <ReviewsCard
+            businessName={content.business_name}
+            rating={4.9}
+            ratingsTotal={195}
+            primaryColor={primaryColor}
+            themeMode="light"
+            headingFontClass={beautyHeading.className}
+          />
+        </TemplateSection>
+
+        {/* 7. HORAIRES & PLAN */}
+        <TemplateSection
+          id="horaires"
+          badge="Pratique"
+          title="Horaires d'ouverture & Accès"
+          subtitle="Notre équipe vous reçoit sur rendez-vous pour préserver votre tranquillité."
+          primaryColor={primaryColor}
+          headingFontClass={beautyHeading.className}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-7">
+              <OpeningHoursCard
+                hoursList={content.opening_hours}
+                primaryColor={primaryColor}
+                themeMode="light"
+              />
+            </div>
+
+            <div className="lg:col-span-5 bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-md">
+              <div>
+                <h3 className="font-bold text-stone-900 text-base sm:text-lg flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-rose-500" />
+                  <span>Adresse & Coordonnées</span>
+                </h3>
+                <p className="text-sm text-stone-600 mt-2 leading-relaxed">
+                  {content.address || "Adresse sur demande"}
+                </p>
+              </div>
+
+              {content.phone && (
+                <div className="pt-4 border-t border-stone-200">
+                  <span className="text-xs text-stone-500 uppercase tracking-wider font-semibold block">
+                    Prise de rendez-vous
+                  </span>
+                  <a
+                    href={isPreview ? "#" : `tel:${content.phone}`}
+                    className="text-lg font-black mt-1 block tracking-tight hover:underline"
+                    style={{ color: primaryColor }}
+                  >
+                    {content.phone}
+                  </a>
+                </div>
+              )}
+
+              <a
+                href={isPreview ? "#" : mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-12 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
+              >
+                <MapPin className="w-4 h-4 text-rose-400" />
+                <span>Itinéraire Google Maps</span>
+              </a>
+            </div>
+          </div>
+        </TemplateSection>
+      </main>
+
+      {/* 8. FOOTER */}
+      <TemplateFooter
+        businessName={content.business_name}
+        address={content.address}
+        phone={content.phone}
+        instagramHandle={content.instagram_handle}
+        primaryColor={primaryColor}
+        themeMode="light"
+      />
+
+      {/* 9. BARRE FIXE MOBILE */}
+      <MobileStickyBar
+        phone={content.phone}
+        address={content.address}
+        businessName={content.business_name}
+        primaryColor={primaryColor}
+        ctaType="book_treatment"
+        isPreview={isPreview}
+      />
     </div>
   )
 }

@@ -58,6 +58,9 @@ export interface DemoContent {
     name: string
     price: string
     desc: string
+    category?: string
+    duration?: string
+    badge?: string
   }>
   instagram_handle?: string
 }
