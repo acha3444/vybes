@@ -52,15 +52,12 @@ export default function PlacesMap({
         // Ajout du contrôle de zoom en haut à droite
         L.control.zoom({ position: "topright" }).addTo(map)
 
-        // Tuiles OpenStreetMap CartoDB Dark Matter / Stadia pour un design sombre premium
-        L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-          {
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19,
-          }
-        ).addTo(map)
+        // Tuiles OpenStreetMap officielles 100% gratuites et sans filigrane
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        }).addTo(map)
 
         mapInstanceRef.current = map
       } else {
