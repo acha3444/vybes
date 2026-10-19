@@ -1,0 +1,259 @@
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import {
+  Compass,
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  LogOut,
+  Sparkles,
+  ExternalLink,
+} from "lucide-react"
+import { getDaysRemaining } from "@/lib/utils"
+
+export const dynamic = "force-dynamic"
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Si pas de session et Supabase configuré
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (url && !url.includes("placeholder") && !user) {
+    redirect("/connexion")
+  }
+
+  // Profil par défaut ou chargé
+  let profile = {
+    full_name: user?.user_metadata?.full_name || "Créateur",
+    email: user?.email || "freelance@vybe.fr",
+    subscription_status: "trialing",
+    trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  }
+
+  if (user) {
+    const { data: dbProfile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single()
+
+    if (dbProfile) {
+      profile = {
+        ...profile,
+        ...dbProfile,
+      }
+    }
+  }
+
+  const daysLeft = getDaysRemaining(profile.trial_ends_at)
+  const isTrial = profile.subscription_status === "trialing"
+  const isActive = profile.subscription_status === "active"
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-white flex flex-col md:flex-row pb-20 md:pb-0 selection:bg-indigo-500 selection:text-white">
+      {/* SIDEBAR DESKTOP */}
+      <aside className="hidden md:flex flex-col w-64 bg-neutral-900 border-r border-neutral-800 p-5 shrink-0 justify-between">
+        <div className="space-y-6">
+          {/* Logo */}
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/25">
+              V
+            </div>
+            <div>
+              <span className="font-extrabold text-xl tracking-tight text-white block">
+                Vybe
+              </span>
+              <span className="text-[10px] text-neutral-400 font-medium block uppercase tracking-wider">
+                Prospect & Signe
+              </span>
+            </div>
+          </Link>
+
+          {/* Badge statut abonnement */}
+          <Link
+            href="/abonnement"
+            className="block p-3 rounded-2xl bg-gradient-to-br from-neutral-850 to-neutral-800 border border-neutral-700/60 hover:border-indigo-500/50 transition-all group"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
+                Mon plan
+              </span>
+              {isActive ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+                  PRO ACTIF
+                </span>
+              ) : (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  ESSAI ({daysLeft}j)
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-neutral-300 font-medium group-hover:text-white flex items-center gap-1">
+              <span>{isActive ? "Gérer mon abonnement" : "Passer au plan illimité (29€)"}</span>
+              <ExternalLink className="w-3 h-3 text-neutral-400 group-hover:text-indigo-400" />
+            </p>
+          </Link>
+
+          {/* Navigation links */}
+          <nav className="space-y-1.5 pt-2">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-white bg-neutral-800/80 hover:bg-neutral-800 transition-colors"
+            >
+              <LayoutDashboard className="w-5 h-5 text-indigo-400" />
+              <span>Tableau de bord</span>
+            </Link>
+
+            <Link
+              href="/trouver"
+              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-neutral-850 transition-colors"
+            >
+              <Compass className="w-5 h-5 text-neutral-400" />
+              <span>Trouver un commerce</span>
+            </Link>
+
+            <Link
+              href="/prospects"
+              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-neutral-850 transition-colors"
+            >
+              <Users className="w-5 h-5 text-neutral-400" />
+              <span>Mes prospects</span>
+            </Link>
+
+            <Link
+              href="/abonnement"
+              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-neutral-850 transition-colors"
+            >
+              <CreditCard className="w-5 h-5 text-neutral-400" />
+              <span>Abonnement</span>
+            </Link>
+          </nav>
+        </div>
+
+        {/* Footer Sidebar avec déconnexion */}
+        <div className="pt-4 border-t border-neutral-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-bold flex items-center justify-center text-xs shrink-0">
+              {profile.full_name?.charAt(0)?.toUpperCase() || "F"}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-xs font-semibold text-white truncate">
+                {profile.full_name}
+              </p>
+              <p className="text-[10px] text-neutral-400 truncate">
+                {profile.email}
+              </p>
+            </div>
+          </div>
+
+          <form action="/auth/deconnexion" method="POST">
+            <button
+              type="submit"
+              title="Se déconnecter"
+              className="p-2 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-neutral-800 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      {/* ZONE CENTRALE */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* TOPBAR MOBILE & DESKTOP */}
+        <header className="sticky top-0 z-30 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800/80 px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Logo Mobile */}
+          <div className="flex items-center gap-2 md:hidden">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-base text-white shadow-md">
+              V
+            </div>
+            <span className="font-extrabold text-lg tracking-tight text-white">
+              Vybe
+            </span>
+          </div>
+
+          <div className="hidden md:block">
+            <span className="text-xs uppercase tracking-wider text-neutral-400 font-medium">
+              Espace Freelance
+            </span>
+          </div>
+
+          {/* Statut & Action Mobile */}
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/abonnement"
+              className="px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-xs font-medium flex items-center gap-1.5"
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isActive ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                }`}
+              />
+              <span className="text-neutral-300">
+                {isActive ? "Pro Actif" : `Essai : ${daysLeft}j`}
+              </span>
+            </Link>
+
+            <form action="/auth/deconnexion" method="POST" className="md:hidden">
+              <button
+                type="submit"
+                className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+        </header>
+
+        {/* CONTENU PRINCIPAL */}
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-6xl w-full mx-auto">
+          {children}
+        </main>
+      </div>
+
+      {/* BOTTOM NAVIGATION BAR MOBILE */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 px-3 py-2 flex items-center justify-around md:hidden">
+        <Link
+          href="/dashboard"
+          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 active:text-indigo-400 transition-colors"
+        >
+          <LayoutDashboard className="w-5 h-5 text-indigo-400" />
+          <span className="text-[11px] font-semibold text-white">Accueil</span>
+        </Link>
+
+        <Link
+          href="/trouver"
+          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 transition-colors"
+        >
+          <Compass className="w-5 h-5" />
+          <span className="text-[11px] font-medium">Trouver</span>
+        </Link>
+
+        <Link
+          href="/prospects"
+          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 transition-colors"
+        >
+          <Users className="w-5 h-5" />
+          <span className="text-[11px] font-medium">Prospects</span>
+        </Link>
+
+        <Link
+          href="/abonnement"
+          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 transition-colors"
+        >
+          <CreditCard className="w-5 h-5" />
+          <span className="text-[11px] font-medium">Compte</span>
+        </Link>
+      </nav>
+    </div>
+  )
+}
