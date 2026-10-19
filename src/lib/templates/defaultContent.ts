@@ -2,32 +2,32 @@ import { DemoContent, BusinessCategory } from "@/types/database"
 
 export const TEMPLATE_DEFAULT_THEMES = {
   restaurant: {
-    primaryColor: "#ea580c", // Ambre / Orange chaud
+    primaryColor: "#c2410c", // Terracotta chaud élégant
     heroImage:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=80",
     gallery: [
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80",
     ],
   },
   barber: {
-    primaryColor: "#d97706", // Or ambré / Cuivre sur fond sombre
+    primaryColor: "#eab308", // Or brossé mat
     heroImage:
       "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80",
     gallery: [
       "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80",
     ],
   },
   beauty: {
-    primaryColor: "#db2777", // Rose framboise raffiné
+    primaryColor: "#be185d", // Framboise doux
     heroImage:
       "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?auto=format&fit=crop&w=1200&q=80",
     gallery: [
-      "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
     ],
   },
@@ -38,45 +38,44 @@ export function generateDefaultDemoContent(
   businessName: string,
   city = "votre ville",
   address = "",
-  phone = "01 23 45 67 89"
+  phone = "04 91 00 00 00"
 ): DemoContent {
   const theme = TEMPLATE_DEFAULT_THEMES[category]
 
   if (category === "restaurant") {
     return {
       business_name: businessName,
-      tagline: `Cuisine passionnée & produits frais au cœur de ${city}`,
-      about: `Bienvenue chez ${businessName}. Nous vous accueillons dans un cadre chaleureux et convivial pour partager une cuisine généreuse, élaborée chaque jour avec des ingrédients locaux et de saison. Venez savourer un moment d'exception en famille ou entre amis.`,
+      tagline: `Cuisine de marché, produits frais & carte de saison`,
+      about: `Des arrivages frais chaque matin, une carte courte qui évolue au fil des saisons et des cuissons au feu de bois. Une adresse de quartier pensée pour bien manger et passer un bon moment, le midi comme le soir.`,
       primary_color: theme.primaryColor,
-      phone: phone || "01 23 45 67 89",
-      address: address || `12 Rue Principale, ${city}`,
+      phone: phone || "04 91 00 00 00",
+      address: address || `Centre-ville, ${city}`,
       opening_hours: [
-        "Lundi - Vendredi : 12h00 - 14h30, 19h00 - 22h30",
-        "Samedi : 19h00 - 23h00",
-        "Dimanche : Fermé",
+        "Mardi - Samedi : 12h00 - 14h30 • 19h00 - 22h30",
+        "Dimanche & Lundi : Fermé",
       ],
       hero_image_url: theme.heroImage,
       gallery_images: theme.gallery,
       services_or_menu: [
         {
-          name: "Entrecôte Charolaise Grillée (300g)",
-          price: "24.50 €",
-          desc: "Cuite à la flamme, sauce béarnaise maison et frites fraîches dorées",
+          name: "Pièce de boucher grillée (300g)",
+          price: "24 €",
+          desc: "Frites fraîches maison, jus réduit au thym et salade croquante",
         },
         {
-          name: "Burger Signature du Chef",
-          price: "18.00 €",
-          desc: "Steak haché façon bouchère, cheddar affiné 18 mois, oignons caramélisés et pain artisanal",
+          name: "Pêche du jour rôtie",
+          price: "22 €",
+          desc: "Légumes de saison glacés et émulsion d'herbes fraîches",
         },
         {
-          name: "Filet de Bar Rôti",
-          price: "22.00 €",
-          desc: "Émulsion au citron confit, mousseline de panais et légumes de saison",
+          name: "Burger maison au cheddar affiné",
+          price: "18 €",
+          desc: "Pain brioché d'artisan, steak bouchère, pickles et oignons confits",
         },
         {
-          name: "Mi-cuit au Chocolat Valrhona",
-          price: "8.50 €",
-          desc: "Cœur coulant intense, boule de glace vanille Bourbon de Madagascar",
+          name: "Tarte fine aux pommes caramélisées",
+          price: "8 €",
+          desc: "Servie tiède, crème glacée vanille artisanale",
         },
       ],
       instagram_handle: `@${businessName.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
@@ -86,11 +85,11 @@ export function generateDefaultDemoContent(
   if (category === "barber") {
     return {
       business_name: businessName,
-      tagline: `L'art du rasage traditionnel et de la coupe sur-mesure à ${city}`,
-      about: `Installé à ${city}, ${businessName} réinvente l'expérience barbier. Nos barbiers passionnés maîtrisent à la fois les techniques de coupe modernes (dégradés à blanc, taper) et les rituels de rasage traditionnels à la serviette chaude. Installez-vous dans un fauteuil confortable et profitez d'un moment de détente absolu.`,
+      tagline: `Coupes de précision, barbes taillées au coupe-choux & soins`,
+      about: `Un espace dédié au style masculin. Dégradés millimétrés (taper, fade), taille de barbe à l'ancienne avec rituel serviette chaude, et conseils personnalisés pour l'entretien au quotidien.`,
       primary_color: theme.primaryColor,
-      phone: phone || "01 23 45 67 89",
-      address: address || `18 Avenue Centrale, ${city}`,
+      phone: phone || "04 91 00 00 00",
+      address: address || `Centre-ville, ${city}`,
       opening_hours: [
         "Mardi - Vendredi : 09h30 - 19h30",
         "Samedi : 09h00 - 19h00",
@@ -100,38 +99,38 @@ export function generateDefaultDemoContent(
       gallery_images: theme.gallery,
       services_or_menu: [
         {
-          name: "Coupe Homme & Coiffage",
+          name: "Coupe & Coiffage",
           price: "25 €",
-          desc: "Diagnostic personnalisé, dégradé de précision (taper / fade), shampoing et coiffage",
+          desc: "Shampoing, coupe sur-mesure aux ciseaux et tondeuse, finition au rasoir",
         },
         {
-          name: "Taille de Barbe Traditionnelle",
+          name: "Taille de Barbe & Serviette Chaude",
           price: "20 €",
-          desc: "Tracé des contours au coupe-choux, serviette chaude parfumée et huile nourrissante",
+          desc: "Contours nets au coupe-choux, serviette chaude et huile de soin",
         },
         {
-          name: "Formule Complète Coupe + Barbe",
+          name: "Formule Complète (Coupe + Barbe)",
           price: "40 €",
-          desc: "Le rituel signature complet : coupe sur-mesure, taille et soin complet de la barbe",
+          desc: "La formule totale : coupe de précision + rituel complet barbe",
         },
         {
-          name: "Soin Visage Purifiant & Gommage",
-          price: "18 €",
-          desc: "Masque purifiant noir, vapeur chaude et hydratation profonde",
+          name: "Tonte Express & Contours",
+          price: "16 €",
+          desc: "Rafraîchissement des contours de nuque et tempes au rasoir",
         },
       ],
-      instagram_handle: `@${businessName.toLowerCase().replace(/[^a-z0-9]/g, "")}_barber`,
+      instagram_handle: `@${businessName.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
     }
   }
 
-  // category === "beauty"
+  // beauty
   return {
     business_name: businessName,
-    tagline: `Votre parenthèse bien-être, soins et beauté à ${city}`,
-    about: `Bienvenue chez ${businessName}, votre havre de paix dédié à la beauté et à la relaxation à ${city}. Notre équipe d'esthéticiennes expertes vous propose des soins du visage sur-mesure, des rituels corps relaxants et une onglerie d'exception. Laissez vos soucis à la porte et prenez soin de vous.`,
+    tagline: `Soins experts du visage, onglerie & rituels de détente`,
+    about: `Un institut intimiste et lumineux au cœur de ${city}. Protocoles de soins du visage adaptés à chaque type de peau, onglerie soignée et rituels relaxants. Des produits professionnels et une attention portée à chaque détail.`,
     primary_color: theme.primaryColor,
-    phone: phone || "01 23 45 67 89",
-    address: address || `24 Rue de la Paix, ${city}`,
+    phone: phone || "04 91 00 00 00",
+    address: address || `Centre-ville, ${city}`,
     opening_hours: [
       "Mardi - Vendredi : 10h00 - 19h00",
       "Samedi : 09h30 - 18h00",
@@ -141,26 +140,26 @@ export function generateDefaultDemoContent(
     gallery_images: theme.gallery,
     services_or_menu: [
       {
-        name: "Soin Visage Éclat & Anti-Âge (60 min)",
+        name: "Soin Visage Éclat Profond (60 min)",
         price: "65 €",
-        desc: "Nettoyage profond, gommage doux aux acides de fruits, modelage relaxant et masque hydratant",
+        desc: "Nettoyage, gommage doux, vapeur, extraction, modelage relaxant et masque",
       },
       {
-        name: "Pose Complète Ongles en Gel / Semi-Permanent",
-        price: "45 €",
-        desc: "Manucure combinée russe, mise en forme et pose avec vernis haute brillance longue durée",
+        name: "Pose Complète Semi-Permanent",
+        price: "40 €",
+        desc: "Manucure combinée, mise en forme des ongles et vernis longue tenue",
       },
       {
-        name: "Massage Relaxant aux Huiles Précieuses (50 min)",
-        price: "70 €",
-        desc: "Dénoue les tensions musculaires, stimule la circulation et procure une détente profonde",
+        name: "Massage Décontractant (50 min)",
+        price: "68 €",
+        desc: "Pression ciblée dos, nuque et épaules aux huiles chaudes végétales",
       },
       {
-        name: "Beauté du Regard (Rehaussement & Teinture)",
-        price: "50 €",
-        desc: "Rehaussement de cils à la kératine et teinture naturelle pour un regard ouvert et intense",
+        name: "Rehaussement de Cils & Teinture",
+        price: "48 €",
+        desc: "Courbure naturelle longue durée pour ouvrir le regard sans maquillage",
       },
     ],
-    instagram_handle: `@${businessName.toLowerCase().replace(/[^a-z0-9]/g, "")}_institut`,
+    instagram_handle: `@${businessName.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
   }
 }

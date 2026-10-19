@@ -3,6 +3,9 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Demo, DemoContent } from "@/types/database"
+import RestaurantTemplate from "@/components/templates/RestaurantTemplate"
+import BarberTemplate from "@/components/templates/BarberTemplate"
+import BeautyTemplate from "@/components/templates/BeautyTemplate"
 import {
   Sparkles,
   ExternalLink,
@@ -20,15 +23,15 @@ import {
   Loader2,
   MessageSquare,
   Smartphone,
-  Eye,
+  Edit3,
 } from "lucide-react"
 
 const COLOR_PRESETS = [
-  { name: "Ambre Chaud", hex: "#ea580c" },
-  { name: "Or Cuivré", hex: "#d97706" },
-  { name: "Rose Poudré", hex: "#db2777" },
+  { name: "Terracotta Chaud", hex: "#c2410c" },
+  { name: "Or Brossé", hex: "#eab308" },
+  { name: "Framboise Élégant", hex: "#be185d" },
   { name: "Émeraude Chic", hex: "#059669" },
-  { name: "Indigo Moderne", hex: "#4f46e5" },
+  { name: "Indigo Pur", hex: "#4f46e5" },
   { name: "Ardoise / Noir", hex: "#1c1917" },
 ]
 
@@ -41,15 +44,17 @@ export default function DemoEditor({
 }) {
   const [content, setContent] = useState<DemoContent>(demo.content)
   const [activeTab, setActiveTab] = useState<"text" | "colors" | "photos">("text")
+  const [mobileView, setMobileView] = useState<"editor" | "preview">("editor")
   const [saving, setSaving] = useState(false)
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
   const [extending, setExtending] = useState(false)
   const [extendedSuccess, setExtendedSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [showMobilePreview, setShowMobilePreview] = useState(false)
 
-  const demoUrl = `${window ? window.location.origin : `http://${rootDomain}`}/demo/${demo.slug}`
+  const demoUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/demo/${demo.slug}`
+    : `http://${rootDomain}/demo/${demo.slug}`
 
   async function handleSave() {
     setSaving(true)
@@ -141,7 +146,7 @@ export default function DemoEditor({
       ...prev,
       services_or_menu: [
         ...(prev.services_or_menu || []),
-        { name: "Nouvelle prestation / Plat", price: "15 €", desc: "Description du service ou ingrédients" },
+        { name: "Nouvelle formule / Plat", price: "15 €", desc: "Description du service ou ingrédients frais" },
       ],
     }))
   }
@@ -207,11 +212,10 @@ export default function DemoEditor({
             rel="noopener noreferrer"
             className="h-11 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-white font-bold text-xs flex items-center gap-2 border border-neutral-700 transition-colors"
           >
-            <span>Voir en direct</span>
+            <span>Voir en plein écran</span>
             <ExternalLink className="w-4 h-4 text-neutral-400" />
           </a>
 
-          {/* Lien vers l'Étape 5 : Messages de prospection */}
           <Link
             href={`/prospecter?demo_id=${demo.id}`}
             className="h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
@@ -222,10 +226,42 @@ export default function DemoEditor({
         </div>
       </div>
 
-      {/* ZONE PRINCIPALE : FORMULAIRE SIMPLE ET PRÉVISUALISATION */}
+      {/* COMMUTATEUR SUR MOBILE (Éditer vs Voir l'aperçu) */}
+      <div className="flex lg:hidden items-center bg-neutral-900 p-1.5 rounded-2xl border border-neutral-800">
+        <button
+          type="button"
+          onClick={() => setMobileView("editor")}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            mobileView === "editor"
+              ? "bg-indigo-600 text-white shadow-md"
+              : "text-neutral-400"
+          }`}
+        >
+          <Edit3 className="w-4 h-4" />
+          <span>Formulaire</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileView("preview")}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            mobileView === "preview"
+              ? "bg-indigo-600 text-white shadow-md"
+              : "text-neutral-400"
+          }`}
+        >
+          <Smartphone className="w-4 h-4" />
+          <span>Aperçu en direct</span>
+        </button>
+      </div>
+
+      {/* ZONE PRINCIPALE : FORMULAIRE SIMPLE ET PRÉVISUALISATION DIRECTE */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* COLONNE GAUCHE : LE FORMULAIRE DE PERSONNALISATION ÉPURÉ */}
-        <div className="lg:col-span-7 bg-neutral-900/90 border border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xl space-y-6">
+        <div
+          className={`lg:col-span-7 bg-neutral-900/90 border border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xl space-y-6 ${
+            mobileView === "preview" ? "hidden lg:block" : "block"
+          }`}
+        >
           {/* SÉLECTEUR D'ONGLETS */}
           <div className="flex items-center gap-2 border-b border-neutral-800 pb-3">
             <button
@@ -301,10 +337,10 @@ export default function DemoEditor({
 
               <div>
                 <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                  À propos / Histoire du commerce
+                  Présentation du commerce
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={content.about}
                   onChange={(e) =>
                     setContent({ ...content, about: e.target.value })
@@ -316,7 +352,7 @@ export default function DemoEditor({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                    Téléphone (Bouton d&apos;appel)
+                    Téléphone
                   </label>
                   <input
                     type="text"
@@ -330,7 +366,7 @@ export default function DemoEditor({
 
                 <div>
                   <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                    Adresse complète
+                    Adresse
                   </label>
                   <input
                     type="text"
@@ -348,7 +384,7 @@ export default function DemoEditor({
                 <div className="flex items-center justify-between mb-3">
                   <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
                     {demo.template_type === "restaurant"
-                      ? "Plats & Carte du menu"
+                      ? "Carte du restaurant"
                       : "Prestations & Tarifs"}
                   </label>
                   <button
@@ -390,7 +426,7 @@ export default function DemoEditor({
                         </div>
                         <input
                           type="text"
-                          placeholder="Description (ex: ingrédients, durée...)"
+                          placeholder="Description succincte"
                           value={item.desc}
                           onChange={(e) =>
                             updateServiceItem(idx, "desc", e.target.value)
@@ -449,12 +485,12 @@ export default function DemoEditor({
 
               <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800">
                 <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                  Code couleur personnalisé (HEX)
+                  Code couleur sur-mesure (HEX)
                 </label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={content.primary_color || "#ea580c"}
+                    value={content.primary_color || "#c2410c"}
                     onChange={(e) =>
                       setContent({ ...content, primary_color: e.target.value })
                     }
@@ -462,7 +498,7 @@ export default function DemoEditor({
                   />
                   <input
                     type="text"
-                    value={content.primary_color || "#ea580c"}
+                    value={content.primary_color || "#c2410c"}
                     onChange={(e) =>
                       setContent({ ...content, primary_color: e.target.value })
                     }
@@ -478,7 +514,7 @@ export default function DemoEditor({
             <div className="space-y-6">
               <div>
                 <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
-                  Photo de couverture principale (Hero)
+                  Photo principale (Hero)
                 </label>
                 <div className="relative rounded-2xl overflow-hidden aspect-video border border-neutral-800 mb-3 bg-neutral-950">
                   <img
@@ -488,29 +524,27 @@ export default function DemoEditor({
                   />
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <label className="h-10 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors">
-                    <ImageIcon className="w-4 h-4 text-neutral-400" />
-                    <span>{uploading ? "Téléversement..." : "Remplacer la photo (Upload)"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploading}
-                      onChange={(e) => handleFileUpload(e, "hero")}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                <label className="h-10 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer transition-colors">
+                  <ImageIcon className="w-4 h-4 text-neutral-400" />
+                  <span>{uploading ? "Téléversement..." : "Remplacer la photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploading}
+                    onChange={(e) => handleFileUpload(e, "hero")}
+                    className="hidden"
+                  />
+                </label>
               </div>
 
               <div className="pt-4 border-t border-neutral-800">
                 <div className="flex items-center justify-between mb-3">
                   <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
-                    Galerie photos du commerce
+                    Galerie photos
                   </label>
                   <label className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Ajouter une photo</span>
+                    <span>Ajouter</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -577,7 +611,6 @@ export default function DemoEditor({
               )}
             </button>
 
-            {/* Prolongation 14 jours */}
             <button
               type="button"
               disabled={extending}
@@ -590,32 +623,42 @@ export default function DemoEditor({
           </div>
         </div>
 
-        {/* COLONNE DROITE : APERÇU MOBILE EN DIRECT */}
-        <div className="lg:col-span-5 sticky top-24">
+        {/* COLONNE DROITE : APERÇU MOBILE EN DIRECT ET EN TEMPS RÉEL (0 DÉLAI) */}
+        <div
+          className={`lg:col-span-5 sticky top-24 ${
+            mobileView === "editor" ? "hidden lg:block" : "block"
+          }`}
+        >
           <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-4 shadow-2xl">
             <div className="flex items-center justify-between mb-3 px-2">
               <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4 text-indigo-400" />
-                <span>Aperçu smartphone direct</span>
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+                <span className="text-white">Aperçu en temps réel</span>
               </span>
-              <a
-                href={`/demo/${demo.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
-              >
-                <span>Plein écran</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+                LIVE REACt
+              </span>
             </div>
 
-            {/* Simulateur écran mobile */}
-            <div className="relative mx-auto w-full max-w-[340px] h-[600px] rounded-[36px] overflow-hidden border-[6px] border-neutral-800 shadow-2xl bg-neutral-950">
-              <iframe
-                src={`/demo/${demo.slug}`}
-                title="Aperçu mobile"
-                className="w-full h-full border-0 select-none"
-              />
+            {/* Simulateur écran mobile réactif */}
+            <div className="relative mx-auto w-full max-w-[360px] h-[640px] rounded-[38px] overflow-hidden border-[7px] border-neutral-800 shadow-2xl bg-neutral-950 flex flex-col">
+              {/* Encoche haut smartphone */}
+              <div className="h-5 bg-neutral-950 w-full flex items-center justify-center shrink-0 z-30">
+                <div className="w-20 h-3.5 bg-neutral-800 rounded-b-xl" />
+              </div>
+
+              {/* Rendu dynamique du template sélectionné en live avec l'état local */}
+              <div className="flex-1 overflow-y-auto scrollbar-none relative">
+                {demo.template_type === "restaurant" && (
+                  <RestaurantTemplate content={content} isPreview={true} />
+                )}
+                {demo.template_type === "barber" && (
+                  <BarberTemplate content={content} isPreview={true} />
+                )}
+                {demo.template_type === "beauty" && (
+                  <BeautyTemplate content={content} isPreview={true} />
+                )}
+              </div>
             </div>
           </div>
         </div>
