@@ -1,11 +1,11 @@
 "use client"
 
-import { Star, ShieldCheck, HeartHandshake, Award } from "lucide-react"
+import { Star, ShieldCheck, HeartHandshake, Award, Sparkles } from "lucide-react"
 
 interface ReviewsCardProps {
   businessName: string
-  rating?: number
-  ratingsTotal?: number
+  rating?: number | null
+  ratingsTotal?: number | null
   primaryColor?: string
   themeMode?: "dark" | "light"
   headingFontClass?: string
@@ -14,16 +14,17 @@ interface ReviewsCardProps {
 
 export default function ReviewsCard({
   businessName,
-  rating = 4.9,
-  ratingsTotal = 180,
+  rating,
+  ratingsTotal,
   primaryColor = "#c2410c",
   themeMode = "dark",
   headingFontClass = "",
   isPreview = false,
 }: ReviewsCardProps) {
   const isLight = themeMode === "light"
-  const formattedRating = Number(rating || 4.9).toFixed(1)
-  const formattedCount = ratingsTotal || 180
+  const hasRating = typeof rating === "number" && rating > 0
+  const formattedRating = hasRating ? Number(rating).toFixed(1) : null
+  const hasCount = typeof ratingsTotal === "number" && ratingsTotal > 0
 
   return (
     <div
@@ -40,7 +41,7 @@ export default function ReviewsCard({
           isPreview ? "grid-cols-1 gap-5" : "grid-cols-1 md:grid-cols-12 gap-8"
         }`}
       >
-        {/* Colonne Note globale */}
+        {/* Colonne Note globale ou Engagement client */}
         <div
           className={`${
             isPreview
@@ -48,36 +49,72 @@ export default function ReviewsCard({
               : "md:col-span-5 text-center md:text-left md:border-r md:border-neutral-200 dark:md:border-neutral-800 md:pr-8"
           }`}
         >
-          <div className="flex items-center justify-center md:justify-start gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
+          {hasRating ? (
+            <>
+              <div className="flex items-center justify-center md:justify-start gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                      s <= Math.round(Number(rating))
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-neutral-600"
+                    }`}
+                  />
+                ))}
+              </div>
 
-          <div className="flex items-baseline justify-center md:justify-start gap-2">
-            <span
-              className={`font-black tracking-tight ${
-                isPreview ? "text-3xl" : "text-4xl sm:text-5xl"
-              } ${isLight ? "text-neutral-950" : "text-white"} ${headingFontClass}`}
-            >
-              {formattedRating}
-            </span>
-            <span className="text-neutral-500 font-bold text-base sm:text-lg">/ 5</span>
-          </div>
+              <div className="flex items-baseline justify-center md:justify-start gap-2">
+                <span
+                  className={`font-black tracking-tight ${
+                    isPreview ? "text-3xl" : "text-4xl sm:text-5xl"
+                  } ${isLight ? "text-neutral-950" : "text-white"} ${headingFontClass}`}
+                >
+                  {formattedRating}
+                </span>
+                <span className="text-neutral-500 font-bold text-base sm:text-lg">/ 5</span>
+              </div>
 
-          <p
-            className={`mt-1 sm:mt-2 font-semibold text-xs sm:text-sm ${
-              isLight ? "text-neutral-800" : "text-neutral-200"
-            }`}
-          >
-            Excellente réputation locale
-          </p>
-          <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
-            Basé sur plus de {formattedCount} avis vérifiés
-          </p>
+              <p
+                className={`mt-1 sm:mt-2 font-semibold text-xs sm:text-sm ${
+                  isLight ? "text-neutral-800" : "text-neutral-200"
+                }`}
+              >
+                Avis clients
+              </p>
+              <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
+                {hasCount
+                  ? `Basé sur ${ratingsTotal} avis clients`
+                  : "Note moyenne attribuée par les clients"}
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center md:justify-start gap-1 mb-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+              </div>
+              <h4
+                className={`font-black tracking-tight text-xl sm:text-2xl ${
+                  isLight ? "text-neutral-950" : "text-white"
+                } ${headingFontClass}`}
+              >
+                Avis clients
+              </h4>
+              <p
+                className={`mt-1 font-semibold text-xs sm:text-sm ${
+                  isLight ? "text-neutral-800" : "text-neutral-200"
+                }`}
+              >
+                Votre satisfaction au quotidien
+              </p>
+              <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
+                Une attention constante portée à chaque expérience
+              </p>
+            </>
+          )}
         </div>
 
-        {/* Colonne Piliers de confiance */}
+        {/* Colonne Piliers de confiance (sans allégation factuelle inventée) */}
         <div
           className={`${
             isPreview
@@ -162,10 +199,10 @@ export default function ReviewsCard({
                 isLight ? "text-neutral-900" : "text-white"
               }`}
             >
-              Qualité certifiée
+              Engagement qualité
             </h4>
             <p className="text-[11px] text-neutral-400 mt-1 leading-snug">
-              Produits rigoureusement sélectionnés.
+              Sélection attentive de nos produits et prestations.
             </p>
           </div>
         </div>

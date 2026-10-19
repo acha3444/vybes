@@ -23,6 +23,8 @@ export const TEST_DEMO_CASES: TestDemoCase[] = [
       about: "Installé au cœur historique, notre bistrot perpétue l'amour du bon produit et de la cuisine de mémoire. Chaque matin, le chef sélectionne les pièces chez les maraîchers et éleveurs de la région. Les sauces sont réduites pendant 12 heures, le pain est pétri artisanalement et les vins sont choisis directement auprès de vignerons indépendants respectueux du vivant.",
       primary_color: "#c2410c",
       phone: "04 78 28 45 90",
+      rating: 4.9,
+      reviews_count: 240,
       address: "18 Place du Grand Marché, 69002 Lyon",
       opening_hours: [
         "Mardi - Samedi : 12h00 - 14h30 • 19h00 - 22h30",
@@ -179,6 +181,8 @@ export const TEST_DEMO_CASES: TestDemoCase[] = [
       about: "Depuis 2018, notre salon accueille les hommes soucieux de leur apparence dans un cadre inspiré des clubs londoniens des années 30. Cuir patiné, musique soignée, café de spécialité offert et maîtres barbiers formés aux techniques de coupe les plus exigeantes.",
       primary_color: "#eab308",
       phone: "01 42 68 09 15",
+      rating: 4.9,
+      reviews_count: 310,
       address: "24 Rue Montorgueil, 75002 Paris",
       opening_hours: [
         "Mardi - Vendredi : 09h30 - 19h30",
@@ -278,9 +282,11 @@ export const TEST_DEMO_CASES: TestDemoCase[] = [
     content: {
       business_name: "Maison de Beauté & Spa Holistique Élixir Céleste",
       tagline: "Protocoles d'exception, soins anti-âge haute performance et massages bien-être sur-mesure.",
-      about: "Poussez la porte d'un écrin intimiste niché au cœur de la ville. Nos esthéticiennes facialistes diplômées vous accueillent dans une atmosphère feutrée propice au lâcher-prise. Nous travaillons exclusivement avec des marques d'actifs botaniques certifiés biologiques et des technologies non invasives respectueuses de l'équilibre cutané.",
+      about: "Poussez la porte d'un écrin intimiste niché au cœur de la ville. Nos esthéticiennes facialistes vous accueillent dans une atmosphère feutrée propice au lâcher-prise. Nous travaillons avec des marques d'actifs botaniques rigoureusement sélectionnés et des technologies non invasives respectueuses de l'équilibre cutané.",
       primary_color: "#be185d",
       phone: "05 61 23 87 60",
+      rating: 4.8,
+      reviews_count: 195,
       address: "32 Rue des Tourneurs, 31000 Toulouse",
       opening_hours: [
         "Lundi - Vendredi : 10h00 - 19h00",

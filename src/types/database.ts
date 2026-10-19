@@ -63,6 +63,8 @@ export interface DemoContent {
     badge?: string
   }>
   instagram_handle?: string
+  rating?: number | null
+  reviews_count?: number | null
 }
 
 export interface Demo {

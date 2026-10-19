@@ -1,4 +1,5 @@
 import { Phone, MapPin, Heart } from "lucide-react"
+import { formatTelHref } from "@/lib/templates/phoneUtils"
 
 function InstagramIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
   return (
@@ -81,7 +82,7 @@ export default function TemplateFooter({
                   Téléphone
                 </span>
                 <a
-                  href={`tel:${phone}`}
+                  href={formatTelHref(phone)}
                   className="flex items-center gap-1.5 font-bold hover:underline"
                   style={{ color: primaryColor }}
                 >

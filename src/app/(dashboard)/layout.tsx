@@ -218,6 +218,26 @@ export default async function DashboardLayout({
         <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-6xl w-full mx-auto">
           {children}
         </main>
+
+        {/* FOOTER DASHBOARD */}
+        <footer className="mt-auto border-t border-neutral-900 px-4 sm:px-6 py-6 text-xs text-neutral-500">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>© 2026 Vybe • Espace Freelance</p>
+            <div className="flex flex-wrap items-center gap-4 text-neutral-400">
+              <Link href="/mentions-legales" className="hover:text-white transition-colors">
+                Mentions légales
+              </Link>
+              <span>•</span>
+              <Link href="/cgv" className="hover:text-white transition-colors">
+                CGV
+              </Link>
+              <span>•</span>
+              <Link href="/politique-de-confidentialite" className="hover:text-white transition-colors">
+                Confidentialité
+              </Link>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* BOTTOM NAVIGATION BAR MOBILE */}

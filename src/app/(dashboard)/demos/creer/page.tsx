@@ -71,13 +71,17 @@ export default async function CreerDemoPage({
   const slug = nanoid(10)
 
   // 6. Préparation du contenu complet personnalisé
-  const defaultContent = generateDefaultDemoContent(
-    prospect.category,
-    prospect.name,
-    prospect.city || "votre ville",
-    prospect.address || "",
-    prospect.phone || "01 23 45 67 89"
-  )
+  const defaultContent = {
+    ...generateDefaultDemoContent(
+      prospect.category,
+      prospect.name,
+      prospect.city || "votre ville",
+      prospect.address || "",
+      prospect.phone || "01 23 45 67 89"
+    ),
+    rating: prospect.rating ?? null,
+    reviews_count: prospect.user_ratings_total ?? null,
+  }
 
   // 7. Insertion de la démo
   const { data: newDemo, error: demoErr } = await supabase

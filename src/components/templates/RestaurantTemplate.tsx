@@ -11,6 +11,7 @@ import OpeningHoursCard from "./common/OpeningHoursCard"
 import ReviewsCard from "./common/ReviewsCard"
 import TemplateFooter from "./common/TemplateFooter"
 import MobileStickyBar from "./common/MobileStickyBar"
+import { formatTelHref } from "@/lib/templates/phoneUtils"
 import { Utensils, Star, Clock, MapPin, ChefHat, Sparkles, Flame, Wine } from "lucide-react"
 
 export default function RestaurantTemplate({
@@ -94,10 +95,17 @@ export default function RestaurantTemplate({
               <div className="relative z-10 max-w-2xl">
                 {/* Badges d'assurance */}
                 <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-amber-400 text-[11px] sm:text-xs font-bold shadow-xs">
-                    <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
-                    <span>4.9 / 5 • Fait maison</span>
-                  </span>
+                  {content.rating ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-amber-400 text-[11px] sm:text-xs font-bold shadow-xs">
+                      <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{Number(content.rating).toFixed(1)} / 5</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-amber-400 text-[11px] sm:text-xs font-bold shadow-xs">
+                      <Utensils className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                      <span>Cuisine & Saveurs</span>
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-stone-300 text-[11px] sm:text-xs font-medium shadow-xs">
                     <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-stone-400" />
                     <span>Midi & Soir</span>
@@ -129,7 +137,7 @@ export default function RestaurantTemplate({
                 >
                   {content.phone && (
                     <a
-                      href={isPreview ? "#" : `tel:${content.phone}`}
+                      href={isPreview ? "#" : formatTelHref(content.phone)}
                       style={{ backgroundColor: primaryColor, color: ctaTextColor }}
                       className={`h-11 sm:h-13 px-5 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-orange-950/30 active:scale-95 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
@@ -162,7 +170,7 @@ export default function RestaurantTemplate({
             id="apropos"
             badge="Notre engagement"
             title="Une table chaleureuse dédiée aux produits frais"
-            subtitle="Chaque jour, notre brigade sélectionne les meilleurs produits du marché pour vous offrir une cuisine authentique et généreuse."
+            subtitle="Des produits sélectionnés avec soin pour vous offrir une cuisine authentique et généreuse."
             primaryColor={primaryColor}
             headingFontClass={restaurantHeading.className}
             isPreview={isPreview}
@@ -202,8 +210,8 @@ export default function RestaurantTemplate({
                       <ChefHat className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-xs text-white">Fait maison</h4>
-                      <p className="text-[10px] text-stone-400 mt-0.5">Recettes artisanales</p>
+                      <h4 className="font-bold text-xs text-white">Cuisine soignée</h4>
+                      <p className="text-[10px] text-stone-400 mt-0.5">Préparations maison</p>
                     </div>
                   </div>
 
@@ -225,11 +233,12 @@ export default function RestaurantTemplate({
               <div className={isPreview ? "w-full" : "lg:col-span-5"}>
                 <ImageWithFallback
                   src={content.gallery_images && content.gallery_images[0]}
-                  alt="Ambiance restaurant"
+                  alt={`Ambiance chaleureuse et salle de restaurant - ${content.business_name}`}
                   aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
                   className="rounded-2xl sm:rounded-3xl border border-stone-800 shadow-2xl"
                   primaryColor={primaryColor}
                   fallbackIcon={Utensils}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>
             </div>
@@ -265,11 +274,11 @@ export default function RestaurantTemplate({
               </div>
               {content.phone && (
                 <a
-                  href={isPreview ? "#" : `tel:${content.phone}`}
+                  href={isPreview ? "#" : formatTelHref(content.phone)}
                   className="font-bold shrink-0 hover:underline"
                   style={{ color: primaryColor }}
                 >
-                  Contacter le chef : {content.phone}
+                  Nous contacter : {content.phone}
                 </a>
               )}
             </div>
@@ -296,10 +305,11 @@ export default function RestaurantTemplate({
                 <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-stone-800">
                   <ImageWithFallback
                     src={imgUrl}
-                    alt={`Assiette ${idx + 1}`}
+                    alt={`Photo des créations culinaires et de l'ambiance - ${content.business_name} (photo ${idx + 1})`}
                     aspectRatioClass="aspect-[4/3]"
                     primaryColor={primaryColor}
                     fallbackIcon={Utensils}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
               ))}
@@ -310,9 +320,9 @@ export default function RestaurantTemplate({
         {/* 6. AVIS CLIENTS & RÉPUTATION */}
         <TemplateSection
           id="avis"
-          badge="Avis vérifiés"
-          title="Ce que disent les convives"
-          subtitle="Une régularité saluée par nos clients fidèles et les visiteurs de passage."
+          badge="Avis clients"
+          title="Avis clients"
+          subtitle="Ce que partagent nos clients après leur passage à table."
           primaryColor={primaryColor}
           headingFontClass={restaurantHeading.className}
           className="bg-stone-900/30 border-y border-stone-900"
@@ -320,8 +330,8 @@ export default function RestaurantTemplate({
         >
           <ReviewsCard
             businessName={content.business_name}
-            rating={4.9}
-            ratingsTotal={240}
+            rating={content.rating}
+            ratingsTotal={content.reviews_count}
             primaryColor={primaryColor}
             themeMode="dark"
             headingFontClass={restaurantHeading.className}
@@ -373,7 +383,7 @@ export default function RestaurantTemplate({
                     Réservations par téléphone
                   </span>
                   <a
-                    href={isPreview ? "#" : `tel:${content.phone}`}
+                    href={isPreview ? "#" : formatTelHref(content.phone)}
                     className="text-base sm:text-lg font-black mt-0.5 block tracking-tight hover:underline"
                     style={{ color: primaryColor }}
                   >

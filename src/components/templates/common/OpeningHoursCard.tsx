@@ -1,7 +1,8 @@
 "use client"
 
-import { parseOpeningHours } from "@/lib/templates/openingHoursUtils"
-import { Clock, CheckCircle, XCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { parseOpeningHours, DaySchedule } from "@/lib/templates/openingHoursUtils"
+import { Clock } from "lucide-react"
 
 interface OpeningHoursCardProps {
   hoursList?: string[]
@@ -14,13 +15,24 @@ export default function OpeningHoursCard({
   primaryColor = "#c2410c",
   themeMode = "dark",
 }: OpeningHoursCardProps) {
-  if (!hoursList || hoursList.length === 0) {
-    return null
-  }
+  // Calcul initial statique (pour SSR propre sans désynchronisation d'horloge)
+  const [data, setData] = useState<{
+    schedules: DaySchedule[]
+    isOpenNow: boolean
+    hasHours: boolean
+    isClient: boolean
+  }>(() => {
+    const staticData = parseOpeningHours(hoursList, false)
+    return { ...staticData, isClient: false }
+  })
 
-  const { schedules, isOpenNow, hasHours } = parseOpeningHours(hoursList)
+  // Calcul dynamique côté client avec le fuseau Europe/Paris
+  useEffect(() => {
+    const liveData = parseOpeningHours(hoursList, true)
+    setData({ ...liveData, isClient: true })
+  }, [hoursList])
 
-  if (!hasHours || schedules.length === 0) {
+  if (!data.hasHours || data.schedules.length === 0) {
     return null
   }
 
@@ -46,29 +58,35 @@ export default function OpeningHoursCard({
           </h3>
         </div>
 
-        {/* BADGE OUVERT MAINTENANT / FERMÉ */}
-        {isOpenNow ? (
-          <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Ouvert</span>
-          </span>
+        {/* BADGE OUVERT MAINTENANT / FERMÉ (Calculé côté client selon Europe/Paris) */}
+        {data.isClient ? (
+          data.isOpenNow ? (
+            <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Ouvert</span>
+            </span>
+          ) : (
+            <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span>Fermé</span>
+            </span>
+          )
         ) : (
-          <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-rose-500" />
-            <span>Fermé</span>
+          <span className="px-3 py-1 rounded-full bg-neutral-800 text-neutral-400 text-xs font-medium">
+            Horaires
           </span>
         )}
       </div>
 
       <div className="mt-5 space-y-2.5">
-        {schedules.map((schedule) => (
+        {data.schedules.map((schedule) => (
           <div
             key={schedule.dayName}
             className={`flex items-center justify-between py-2 px-3 rounded-xl text-xs sm:text-sm transition ${
               schedule.isToday
                 ? isLight
-                  ? "bg-neutral-100 font-bold border-l-3 border-emerald-500 text-neutral-950"
-                  : "bg-neutral-800/90 font-bold border-l-3 border-emerald-400 text-white"
+                  ? "bg-neutral-100 font-bold border-l-4 border-emerald-500 text-neutral-950"
+                  : "bg-neutral-800/90 font-bold border-l-4 border-emerald-400 text-white"
                 : isLight
                 ? "text-neutral-700"
                 : "text-neutral-400"

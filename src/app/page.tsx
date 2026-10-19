@@ -59,7 +59,7 @@ export default function HomePage() {
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white leading-[1.08]">
           Trouve un commerce sans site.{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400">
-            Signe-le en 60 secondes.
+            Génère sa démo en 60 secondes.
           </span>
         </h1>
 
@@ -103,7 +103,7 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 border-t border-neutral-900">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            La méthode la plus rapide pour faire 1 500 €/mois
+            La méthode la plus directe pour prospecter les commerces locaux
           </h2>
           <p className="text-sm sm:text-base text-neutral-400 mt-2">
             Pas besoin de savoir coder, pas besoin de négocier pendant des heures.
@@ -129,7 +129,7 @@ export default function HomePage() {
             </div>
             <div className="mt-6 pt-4 border-t border-neutral-800 text-xs text-neutral-400 font-medium flex items-center gap-1.5">
               <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-              <span>Plus de 50 000 commerces ciblables en France</span>
+              <span>Données officielles d&apos;entreprises en temps réel</span>
             </div>
           </div>
 
@@ -151,7 +151,7 @@ export default function HomePage() {
             </div>
             <div className="mt-6 pt-4 border-t border-neutral-800 text-xs text-neutral-400 font-medium flex items-center gap-1.5">
               <Smartphone className="w-4 h-4 text-violet-400" />
-              <span>3 templates ultra convertissants inclus</span>
+              <span>3 templates professionnels inclus</span>
             </div>
           </div>
 
@@ -165,15 +165,15 @@ export default function HomePage() {
                 Étape 3
               </span>
               <h3 className="text-xl font-bold text-white mb-2">
-                Envoie le message & Suis la vue
+                Envoie le message & Suis les visites
               </h3>
               <p className="text-sm text-neutral-400 leading-relaxed">
-                Copie le message DM Instagram, SMS ou Email pré-rédigé contenant son lien unique. Reçois une notification dès qu&apos;il ouvre le site !
+                Copie le message DM Instagram, SMS ou Email pré-rédigé contenant le lien direct vers sa démo personnalisée.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-neutral-800 text-xs text-neutral-400 font-medium flex items-center gap-1.5">
               <Eye className="w-4 h-4 text-emerald-400" />
-              <span>Compteur de vues en direct non devinable</span>
+              <span>Lien unique sécurisé avec compteur de visites</span>
             </div>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function HomePage() {
             29 € <span className="text-lg text-neutral-400 font-normal">/ mois</span>
           </h3>
           <p className="text-emerald-400 font-semibold text-sm mt-1">
-            7 jours d&apos;essai gratuit pour trouver ton premier client
+            7 jours d&apos;essai gratuit sans engagement
           </p>
 
           <div className="max-w-md mx-auto my-8 space-y-3 text-left">
@@ -204,7 +204,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-3 text-sm text-neutral-200">
               <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-              <span>Liens uniques demo.[domaine]/code avec compteur de vues</span>
+              <span>Liens de démo uniques et sécurisés avec suivi des consultations</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-neutral-200">
               <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -227,8 +227,21 @@ export default function HomePage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="max-w-6xl mx-auto px-4 sm:px-6 py-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+      <footer className="max-w-6xl mx-auto px-4 sm:px-6 py-8 border-t border-neutral-900 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
         <p>© 2026 Vybe. Tous droits réservés.</p>
+        
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-neutral-400">
+          <Link href="/mentions-legales" className="hover:text-white transition-colors">
+            Mentions légales
+          </Link>
+          <Link href="/cgv" className="hover:text-white transition-colors">
+            CGV
+          </Link>
+          <Link href="/politique-de-confidentialite" className="hover:text-white transition-colors">
+            Politique de confidentialité
+          </Link>
+        </div>
+
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Données hébergées en Europe • Conforme RGPD</span>

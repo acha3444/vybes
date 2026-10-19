@@ -2,6 +2,7 @@
 
 import { Phone, MapPin, Calendar, Utensils, Scissors, Sparkles } from "lucide-react"
 import { getContrastTextColor } from "@/lib/templates/colorUtils"
+import { formatTelHref } from "@/lib/templates/phoneUtils"
 
 interface MobileStickyBarProps {
   phone: string
@@ -25,6 +26,7 @@ export default function MobileStickyBar({
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${businessName} ${address}`
   )}`
+  const telHref = isPreview ? "#" : formatTelHref(phone)
 
   let ctaLabel = "Réserver"
   let CtaIcon = Calendar
@@ -52,7 +54,7 @@ export default function MobileStickyBar({
       <div className="flex items-center gap-2 max-w-md mx-auto">
         {/* BOUTON APPEL */}
         <a
-          href={isPreview ? "#" : `tel:${phone}`}
+          href={telHref}
           className="h-11 sm:h-12 px-3 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 active:scale-95 transition"
           aria-label="Appeler l'établissement"
         >
@@ -74,7 +76,7 @@ export default function MobileStickyBar({
 
         {/* BOUTON CTA PRINCIPAL */}
         <a
-          href={isPreview ? "#" : `tel:${phone}`}
+          href={telHref}
           style={{ backgroundColor: primaryColor, color: textColor }}
           className="flex-1 h-11 sm:h-12 px-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition truncate"
         >

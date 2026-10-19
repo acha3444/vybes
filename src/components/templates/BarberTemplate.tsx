@@ -11,6 +11,7 @@ import OpeningHoursCard from "./common/OpeningHoursCard"
 import ReviewsCard from "./common/ReviewsCard"
 import TemplateFooter from "./common/TemplateFooter"
 import MobileStickyBar from "./common/MobileStickyBar"
+import { formatTelHref } from "@/lib/templates/phoneUtils"
 import { Scissors, Star, Clock, MapPin, Zap, Shield, Sparkles, UserCheck } from "lucide-react"
 
 export default function BarberTemplate({
@@ -91,10 +92,17 @@ export default function BarberTemplate({
 
               <div className="relative z-10 max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-amber-300 text-[11px] sm:text-xs font-bold shadow-xs">
-                    <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
-                    <span>4.9 / 5 • Barbershop certifié</span>
-                  </span>
+                  {content.rating ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-amber-300 text-[11px] sm:text-xs font-bold shadow-xs">
+                      <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{Number(content.rating).toFixed(1)} / 5</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-amber-300 text-[11px] sm:text-xs font-bold shadow-xs">
+                      <Scissors className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                      <span>Barbier & Coiffure</span>
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-neutral-300 text-[11px] sm:text-xs font-medium shadow-xs">
                     <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-neutral-400" />
                     <span>Avec ou sans RDV</span>
@@ -124,7 +132,7 @@ export default function BarberTemplate({
                 >
                   {content.phone && (
                     <a
-                      href={isPreview ? "#" : `tel:${content.phone}`}
+                      href={isPreview ? "#" : formatTelHref(content.phone)}
                       style={{ backgroundColor: primaryColor, color: ctaTextColor }}
                       className={`h-11 sm:h-13 px-5 sm:px-7 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/15 active:scale-95 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
@@ -198,11 +206,12 @@ export default function BarberTemplate({
               <div className={isPreview ? "w-full" : "lg:col-span-5"}>
                 <ImageWithFallback
                   src={content.gallery_images && content.gallery_images[0]}
-                  alt="Poste barbier"
+                  alt={`Espace de coiffure et barbier - ${content.business_name}`}
                   aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
                   className="rounded-2xl sm:rounded-3xl border border-neutral-800 shadow-2xl"
                   primaryColor={primaryColor}
                   fallbackIcon={Scissors}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>
             </div>
@@ -238,7 +247,7 @@ export default function BarberTemplate({
               </div>
               {content.phone && (
                 <a
-                  href={isPreview ? "#" : `tel:${content.phone}`}
+                  href={isPreview ? "#" : formatTelHref(content.phone)}
                   style={{ backgroundColor: primaryColor, color: ctaTextColor }}
                   className="h-10 px-5 rounded-xl font-black uppercase text-[11px] tracking-wider flex items-center justify-center shrink-0 shadow-md active:scale-95 transition"
                 >
@@ -269,10 +278,11 @@ export default function BarberTemplate({
                 <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-neutral-800">
                   <ImageWithFallback
                     src={imgUrl}
-                    alt={`Coupe barber ${idx + 1}`}
+                    alt={`Coupe de cheveux et taille de barbe soignée - ${content.business_name} (réalisation ${idx + 1})`}
                     aspectRatioClass="aspect-square"
                     primaryColor={primaryColor}
                     fallbackIcon={Scissors}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
               ))}
@@ -283,9 +293,9 @@ export default function BarberTemplate({
         {/* 6. AVIS CLIENTS */}
         <TemplateSection
           id="avis"
-          badge="Confiance"
-          title="La communauté du shop"
-          subtitle="Déjà des centaines d'hommes exigeants font confiance au fauteuil chaque mois."
+          badge="Avis clients"
+          title="Avis clients"
+          subtitle="Les retours de nos clients après leur passage au fauteuil."
           primaryColor={primaryColor}
           headingFontClass={barberHeading.className}
           className="bg-neutral-900/30 border-y border-neutral-900"
@@ -293,8 +303,8 @@ export default function BarberTemplate({
         >
           <ReviewsCard
             businessName={content.business_name}
-            rating={4.9}
-            ratingsTotal={310}
+            rating={content.rating}
+            ratingsTotal={content.reviews_count}
             primaryColor={primaryColor}
             themeMode="dark"
             headingFontClass={barberHeading.className}
@@ -346,7 +356,7 @@ export default function BarberTemplate({
                     Contact direct
                   </span>
                   <a
-                    href={isPreview ? "#" : `tel:${content.phone}`}
+                    href={isPreview ? "#" : formatTelHref(content.phone)}
                     className="text-base sm:text-lg font-black mt-0.5 block tracking-tight hover:underline"
                     style={{ color: primaryColor }}
                   >

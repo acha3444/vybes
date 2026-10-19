@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Menu, X, Phone, LucideIcon, Sparkles } from "lucide-react"
 import { getContrastTextColor } from "@/lib/templates/colorUtils"
+import { formatTelHref } from "@/lib/templates/phoneUtils"
 
 interface NavLink {
   label: string
@@ -115,7 +116,7 @@ export default function TemplateNavbar({
         <div className="flex items-center gap-2 shrink-0">
           {!isPreview && phone && (
             <a
-              href={`tel:${phone}`}
+              href={formatTelHref(phone)}
               style={{ backgroundColor: primaryColor, color: ctaTextColor }}
               className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition"
             >
@@ -172,7 +173,7 @@ export default function TemplateNavbar({
           {phone && (
             <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800">
               <a
-                href={isPreview ? "#" : `tel:${phone}`}
+                href={isPreview ? "#" : formatTelHref(phone)}
                 onClick={() => setMobileMenuOpen(false)}
                 style={{ backgroundColor: primaryColor, color: ctaTextColor }}
                 className="w-full h-12 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-98 transition"
