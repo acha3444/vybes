@@ -53,7 +53,7 @@ export default async function DashboardPage() {
     // Statistiques des prospects
     const { data: prospects } = await supabase
       .from("prospects")
-      .select("id, name, category, city, status, created_at")
+      .select("id, name, category, city, status, created_at, demos(id, slug, views_count)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5)
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     if (prospects) {
       stats.prospectsCount = prospects.length
       stats.signedCount = prospects.filter((p) => p.status === "signe").length
-      recentProspects = prospects
+      recentProspects = prospects as any
     }
 
     // Statistiques des démos
@@ -280,22 +280,70 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="divide-y divide-neutral-800">
-            {recentProspects.map((p) => (
-              <div
-                key={p.id}
-                className="py-3 flex items-center justify-between gap-4"
-              >
-                <div>
-                  <h4 className="font-bold text-sm text-white">{p.name}</h4>
-                  <p className="text-xs text-neutral-400">
-                    {p.category} • {p.city || "Ville non précisée"}
-                  </p>
+            {recentProspects.map((p: any) => {
+              const demo = p.demos && p.demos[0]
+              const viewsCount = demo?.views_count || 0
+              const isSigned = p.status === "signe"
+              const isInterested = p.status === "interesse"
+
+              return (
+                <div
+                  key={p.id}
+                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors">
+                        {p.name}
+                      </h4>
+                      {viewsCount > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          <span>{viewsCount} vue{viewsCount > 1 ? "s" : ""}</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-neutral-400 mt-0.5">
+                      {p.category === "restaurant" ? "Restaurant" : p.category === "barber" ? "Barber" : "Institut"} • {p.city || "Ville non précisée"}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                    <span
+                      className={`text-[11px] px-2.5 py-1 rounded-full font-bold ${
+                        isSigned
+                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                          : isInterested
+                          ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                          : p.status === "demo_envoyee"
+                          ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                          : "bg-neutral-800 text-neutral-300"
+                      }`}
+                    >
+                      {p.status === "signe"
+                        ? "🤝 Signé"
+                        : p.status === "interesse"
+                        ? "🔥 Intéressé"
+                        : p.status === "demo_envoyee"
+                        ? "📤 Démo envoyée"
+                        : p.status === "perdu"
+                        ? "❌ Perdu"
+                        : "⏳ À contacter"}
+                    </span>
+
+                    {demo && (
+                      <Link
+                        href={`/prospecter?demo_id=${demo.id}`}
+                        className="h-8 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs flex items-center gap-1 transition-colors"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Messages</span>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-300 font-medium">
-                  {p.status}
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
