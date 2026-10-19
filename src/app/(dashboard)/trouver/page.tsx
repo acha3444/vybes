@@ -171,16 +171,12 @@ export default function TrouverPage() {
         </div>
 
         {/* Source indicator */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 w-fit">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              source === "google_places_api" ? "bg-emerald-400" : "bg-indigo-400"
-            }`}
-          />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 font-semibold w-fit">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>
             {source === "google_places_api"
               ? "Google Places API connectée"
-              : "Mode démo haute précision"}
+              : "Registre officiel en direct (100% Réel & Gratuit)"}
           </span>
         </div>
       </div>
