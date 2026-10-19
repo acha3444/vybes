@@ -59,9 +59,23 @@ export default function BeautyTemplate({
 
       <main>
         {/* 2. HERO SECTION DOUCE & RAFINÉE */}
-        <section className="relative overflow-hidden pt-8 pb-16 sm:pt-14 sm:pb-24 border-b border-stone-200/80">
-          <div className="max-w-6xl mx-auto px-5 sm:px-8 lg:px-12">
-            <div className="relative rounded-3xl overflow-hidden min-h-[460px] sm:min-h-[560px] flex flex-col justify-end p-6 sm:p-12 lg:p-16 border border-stone-200/80 shadow-2xl">
+        <section
+          className={`relative overflow-hidden border-b border-stone-200/80 ${
+            isPreview ? "pt-4 pb-8" : "pt-8 pb-16 sm:pt-14 sm:pb-24"
+          }`}
+        >
+          <div
+            className={`max-w-6xl mx-auto ${
+              isPreview ? "px-3.5 sm:px-5" : "px-4 sm:px-8 lg:px-12"
+            }`}
+          >
+            <div
+              className={`relative rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-200/80 shadow-2xl ${
+                isPreview
+                  ? "min-h-[380px] p-4 sm:p-6"
+                  : "min-h-[460px] sm:min-h-[560px] p-5 sm:p-10 lg:p-14"
+              }`}
+            >
               <ImageWithFallback
                 src={content.hero_image_url}
                 alt={content.business_name}
@@ -76,37 +90,47 @@ export default function BeautyTemplate({
               />
 
               <div className="relative z-10 max-w-2xl text-white">
-                <div className="flex flex-wrap items-center gap-2.5 mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/70 backdrop-blur-md border border-white/20 text-amber-200 text-xs font-bold shadow-xs">
-                    <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
-                    <span>4.9 / 5 • Soins haute exigence</span>
+                <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-950/70 backdrop-blur-md border border-white/20 text-amber-200 text-[11px] sm:text-xs font-bold shadow-xs">
+                    <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-300 text-amber-300" />
+                    <span>4.9 / 5 • Soins certifiés</span>
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/70 backdrop-blur-md border border-white/20 text-stone-200 text-xs font-medium shadow-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-950/70 backdrop-blur-md border border-white/20 text-stone-200 text-[11px] sm:text-xs font-medium shadow-xs">
                     <Clock className="w-3.5 h-3.5 text-stone-300" />
                     <span>Sur rendez-vous</span>
                   </span>
                 </div>
 
                 <h1
-                  className={`text-3xl sm:text-5xl lg:text-6xl font-normal text-white tracking-tight leading-[1.1] ${beautyHeading.className}`}
+                  className={`${
+                    isPreview
+                      ? "text-xl sm:text-3xl"
+                      : "text-2xl sm:text-4xl lg:text-5xl"
+                  } font-normal text-white tracking-tight leading-tight ${beautyHeading.className}`}
                 >
                   {content.business_name}
                 </h1>
 
                 {content.tagline && (
-                  <p className="mt-3 text-sm sm:text-lg text-stone-200 font-light leading-relaxed text-balance max-w-xl">
+                  <p className="mt-2 text-xs sm:text-base text-stone-200 font-light leading-relaxed text-balance max-w-xl">
                     {content.tagline}
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-3.5 mt-8">
+                <div
+                  className={`flex ${
+                    isPreview ? "flex-col w-full" : "flex-col sm:flex-row"
+                  } items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8`}
+                >
                   {content.phone && (
                     <a
                       href={isPreview ? "#" : `tel:${content.phone}`}
                       style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                      className="h-13 px-7 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-rose-950/20 active:scale-95 transition cursor-pointer"
+                      className={`h-11 sm:h-13 px-5 sm:px-7 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-rose-950/20 active:scale-95 transition cursor-pointer ${
+                        isPreview ? "w-full" : "w-full sm:w-auto"
+                      }`}
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4 shrink-0" />
                       <span>Prendre rendez-vous</span>
                     </a>
                   )}
@@ -114,7 +138,9 @@ export default function BeautyTemplate({
                   {content.services_or_menu && content.services_or_menu.length > 0 && (
                     <a
                       href="#prestations"
-                      className="h-13 px-6 rounded-2xl bg-white/90 hover:bg-white text-stone-900 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer shadow-md"
+                      className={`h-11 sm:h-13 px-5 sm:px-6 rounded-xl sm:rounded-2xl bg-white/90 hover:bg-white text-stone-900 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer shadow-md ${
+                        isPreview ? "w-full" : "w-full sm:w-auto"
+                      }`}
                     >
                       <span>Découvrir nos soins</span>
                     </a>
@@ -134,38 +160,47 @@ export default function BeautyTemplate({
             subtitle="Chaque protocole est pensé comme un moment suspendu où douceur, gestuelle experte et produits d'exception se rencontrent."
             primaryColor={primaryColor}
             headingFontClass={beautyHeading.className}
+            isPreview={isPreview}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-              <div className="lg:col-span-7 space-y-6 text-sm sm:text-base text-stone-600 leading-relaxed max-w-prose">
-                <p className="text-stone-900 text-base sm:text-lg font-normal leading-relaxed">
+            <div
+              className={`grid ${
+                isPreview ? "grid-cols-1 gap-6" : "grid-cols-1 lg:grid-cols-12 gap-10"
+              } items-center`}
+            >
+              <div
+                className={`${
+                  isPreview ? "" : "lg:col-span-7"
+                } space-y-5 text-sm sm:text-base text-stone-600 leading-relaxed max-w-prose`}
+              >
+                <p className="text-stone-900 text-sm sm:text-lg font-normal leading-relaxed">
                   {content.about}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-stone-200">
-                  <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
-                    <Feather className="w-5 h-5 text-rose-500 mb-2" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-stone-200">
+                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 shadow-xs">
+                    <Feather className="w-4 h-4 text-rose-500 mb-1.5" />
                     <h4 className="font-bold text-xs text-stone-900">Toucher expert</h4>
-                    <p className="text-[11px] text-stone-500 mt-0.5">Gestuelle apaisante</p>
+                    <p className="text-[10px] text-stone-500 mt-0.5">Gestuelle apaisante</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
-                    <Flower2 className="w-5 h-5 text-rose-500 mb-2" />
-                    <h4 className="font-bold text-xs text-stone-900">Actifs naturels</h4>
-                    <p className="text-[11px] text-stone-500 mt-0.5">Cosmétiques ciblés</p>
+                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 shadow-xs">
+                    <Flower2 className="w-4 h-4 text-rose-500 mb-1.5" />
+                    <h4 className="font-bold text-xs text-stone-900">Actifs purs</h4>
+                    <p className="text-[10px] text-stone-500 mt-0.5">Cosmétiques ciblés</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
-                    <ShieldCheck className="w-5 h-5 text-rose-500 mb-2" />
+                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 shadow-xs">
+                    <ShieldCheck className="w-4 h-4 text-rose-500 mb-1.5" />
                     <h4 className="font-bold text-xs text-stone-900">Diagnostic peau</h4>
-                    <p className="text-[11px] text-stone-500 mt-0.5">Conseils sur-mesure</p>
+                    <p className="text-[10px] text-stone-500 mt-0.5">Conseils sur-mesure</p>
                   </div>
                 </div>
               </div>
 
-              <div className="lg:col-span-5">
+              <div className={isPreview ? "w-full" : "lg:col-span-5"}>
                 <ImageWithFallback
                   src={content.gallery_images && content.gallery_images[0]}
                   alt="Cabine de soin"
-                  aspectRatioClass="aspect-[4/3] rounded-3xl"
-                  className="rounded-3xl border border-stone-200 shadow-xl"
+                  aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
+                  className="rounded-2xl sm:rounded-3xl border border-stone-200 shadow-xl"
                   primaryColor={primaryColor}
                   fallbackIcon={Flower2}
                 />
@@ -184,16 +219,18 @@ export default function BeautyTemplate({
             primaryColor={primaryColor}
             headingFontClass={beautyHeading.className}
             className="bg-white/80 border-y border-stone-200/80"
+            isPreview={isPreview}
           >
             <PriceList
               items={content.services_or_menu}
               primaryColor={primaryColor}
               themeMode="light"
               headingFontClass={beautyHeading.className}
+              isPreview={isPreview}
             />
 
-            <div className="mt-12 p-6 rounded-2xl bg-[#faf8f5] border border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-600">
-              <div className="flex items-center gap-2.5">
+            <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl bg-[#faf8f5] border border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="flex items-center gap-2">
                 <Heart className="w-4 h-4 text-rose-500 shrink-0" />
                 <span>
                   Bons cadeaux disponibles pour tous nos soins et forfaits sur demande.
@@ -221,10 +258,15 @@ export default function BeautyTemplate({
             subtitle="Poussez la porte de notre espace pensé pour votre détente."
             primaryColor={primaryColor}
             headingFontClass={beautyHeading.className}
+            isPreview={isPreview}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div
+              className={`grid ${
+                isPreview ? "grid-cols-2 gap-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+              }`}
+            >
               {content.gallery_images.map((imgUrl, idx) => (
-                <div key={idx} className="group overflow-hidden rounded-2xl border border-stone-200 shadow-sm">
+                <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm">
                   <ImageWithFallback
                     src={imgUrl}
                     alt={`Espace beauté ${idx + 1}`}
@@ -247,6 +289,7 @@ export default function BeautyTemplate({
           primaryColor={primaryColor}
           headingFontClass={beautyHeading.className}
           className="bg-stone-100/60 border-y border-stone-200/80"
+          isPreview={isPreview}
         >
           <ReviewsCard
             businessName={content.business_name}
@@ -255,6 +298,7 @@ export default function BeautyTemplate({
             primaryColor={primaryColor}
             themeMode="light"
             headingFontClass={beautyHeading.className}
+            isPreview={isPreview}
           />
         </TemplateSection>
 
@@ -266,9 +310,14 @@ export default function BeautyTemplate({
           subtitle="Notre équipe vous reçoit sur rendez-vous pour préserver votre tranquillité."
           primaryColor={primaryColor}
           headingFontClass={beautyHeading.className}
+          isPreview={isPreview}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-7">
+          <div
+            className={`grid ${
+              isPreview ? "grid-cols-1 gap-6" : "grid-cols-1 lg:grid-cols-12 gap-8"
+            } items-start`}
+          >
+            <div className={isPreview ? "w-full" : "lg:col-span-7"}>
               <OpeningHoursCard
                 hoursList={content.opening_hours}
                 primaryColor={primaryColor}
@@ -276,25 +325,29 @@ export default function BeautyTemplate({
               />
             </div>
 
-            <div className="lg:col-span-5 bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-md">
+            <div
+              className={`${
+                isPreview ? "w-full p-4 sm:p-6" : "lg:col-span-5 p-6 sm:p-8"
+              } bg-white border border-stone-200 rounded-2xl sm:rounded-3xl space-y-5 shadow-md`}
+            >
               <div>
                 <h3 className="font-bold text-stone-900 text-base sm:text-lg flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-rose-500" />
+                  <MapPin className="w-4 h-4 text-rose-500" />
                   <span>Adresse & Coordonnées</span>
                 </h3>
-                <p className="text-sm text-stone-600 mt-2 leading-relaxed">
+                <p className="text-xs sm:text-sm text-stone-600 mt-1.5 leading-relaxed">
                   {content.address || "Adresse sur demande"}
                 </p>
               </div>
 
               {content.phone && (
-                <div className="pt-4 border-t border-stone-200">
-                  <span className="text-xs text-stone-500 uppercase tracking-wider font-semibold block">
+                <div className="pt-3 border-t border-stone-200">
+                  <span className="text-[11px] text-stone-500 uppercase tracking-wider font-semibold block">
                     Prise de rendez-vous
                   </span>
                   <a
                     href={isPreview ? "#" : `tel:${content.phone}`}
-                    className="text-lg font-black mt-1 block tracking-tight hover:underline"
+                    className="text-base sm:text-lg font-black mt-0.5 block tracking-tight hover:underline"
                     style={{ color: primaryColor }}
                   >
                     {content.phone}
@@ -306,9 +359,9 @@ export default function BeautyTemplate({
                 href={isPreview ? "#" : mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full h-12 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
+                className="w-full h-11 sm:h-12 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
               >
-                <MapPin className="w-4 h-4 text-rose-400" />
+                <MapPin className="w-3.5 h-3.5 text-rose-400" />
                 <span>Itinéraire Google Maps</span>
               </a>
             </div>

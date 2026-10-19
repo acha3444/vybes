@@ -17,6 +17,7 @@ interface PriceListProps {
   primaryColor?: string
   themeMode?: "dark" | "light"
   headingFontClass?: string
+  isPreview?: boolean
 }
 
 export default function PriceList({
@@ -24,6 +25,7 @@ export default function PriceList({
   primaryColor = "#c2410c",
   themeMode = "dark",
   headingFontClass = "",
+  isPreview = false,
 }: PriceListProps) {
   // Détecter si les items ont des catégories
   const categories = useMemo(() => {
@@ -55,7 +57,7 @@ export default function PriceList({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* ONGLETS DE CATÉGORIES (si 2+ catégories) */}
       {categories.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none max-w-full">
@@ -66,7 +68,7 @@ export default function PriceList({
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 type="button"
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer border ${
+                className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer border ${
                   isSelected
                     ? isLight
                       ? "bg-neutral-900 text-white border-neutral-900 shadow-md"
@@ -84,21 +86,33 @@ export default function PriceList({
       )}
 
       {/* GRILLE OU LISTE D'ITEMS AVEC POINTS DE CONDUITE */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+      <div
+        className={`grid ${
+          isPreview
+            ? "grid-cols-1 gap-3"
+            : "grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6"
+        }`}
+      >
         {filteredItems.map((item, index) => (
           <div
             key={`${item.name}-${index}`}
-            className={`group py-3 px-3.5 rounded-2xl transition duration-200 ${
+            className={`group rounded-2xl transition duration-200 ${
+              isPreview ? "py-2 px-2.5" : "py-3 px-3.5"
+            } ${
               isLight
                 ? "hover:bg-neutral-100/70"
                 : "hover:bg-neutral-900/60"
             }`}
           >
             {/* Ligne Titre + Points de conduite + Prix */}
-            <div className="flex items-baseline justify-between gap-2">
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <div className="flex items-baseline justify-between gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
                 <span
-                  className={`font-bold text-sm sm:text-base tracking-tight truncate max-w-xs ${
+                  className={`font-bold tracking-tight truncate ${
+                    isPreview
+                      ? "text-xs max-w-[160px]"
+                      : "text-sm sm:text-base max-w-xs"
+                  } ${
                     isLight ? "text-neutral-900" : "text-white"
                   } ${headingFontClass}`}
                 >

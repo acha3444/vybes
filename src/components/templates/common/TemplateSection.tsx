@@ -11,6 +11,7 @@ interface TemplateSectionProps {
   headingFontClass?: string
   align?: "left" | "center"
   headerRight?: React.ReactNode
+  isPreview?: boolean
 }
 
 export default function TemplateSection({
@@ -24,20 +25,29 @@ export default function TemplateSection({
   headingFontClass = "",
   align = "left",
   headerRight,
+  isPreview = false,
 }: TemplateSectionProps) {
   const hasHeader = badge || title || subtitle
 
   return (
     <section
       id={id}
-      className={`scroll-mt-24 py-14 sm:py-20 lg:py-24 ${className}`}
+      className={`scroll-mt-24 ${
+        isPreview ? "py-8 sm:py-10" : "py-12 sm:py-20 lg:py-24"
+      } ${className}`}
     >
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 lg:px-12">
+      <div
+        className={`max-w-6xl mx-auto ${
+          isPreview ? "px-3.5 sm:px-5" : "px-4 sm:px-8 lg:px-12"
+        }`}
+      >
         {hasHeader && (
           <div
-            className={`mb-10 sm:mb-14 ${
+            className={`mb-8 sm:mb-14 ${
               align === "center"
                 ? "text-center max-w-2xl mx-auto"
+                : isPreview
+                ? "flex flex-col gap-3"
                 : "flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
             }`}
           >
@@ -57,7 +67,11 @@ export default function TemplateSection({
 
               {title && (
                 <h2
-                  className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-balance leading-tight ${headingFontClass}`}
+                  className={`font-extrabold tracking-tight text-balance leading-tight ${
+                    isPreview
+                      ? "text-lg sm:text-2xl"
+                      : "text-2xl sm:text-3xl lg:text-4xl"
+                  } ${headingFontClass}`}
                 >
                   {title}
                 </h2>

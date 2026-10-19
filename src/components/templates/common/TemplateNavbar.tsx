@@ -46,37 +46,45 @@ export default function TemplateNavbar({
           : "bg-neutral-950/90 border-neutral-800/80"
       }`}
     >
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-4">
+      <div
+        className={`max-w-6xl mx-auto flex items-center justify-between gap-2.5 ${
+          isPreview
+            ? "h-16 px-3.5"
+            : "h-16 sm:h-20 px-4 sm:px-8 lg:px-12"
+        }`}
+      >
         {/* LOGO & NOM DU COMMERCE (Gère les noms très longs proprement) */}
         <a
           href="#"
-          className="flex items-center gap-3 min-w-0 group"
+          className="flex items-center gap-2.5 min-w-0 flex-1 group"
           aria-label={businessName}
         >
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105"
             style={{
               backgroundColor: `${primaryColor}20`,
               color: primaryColor,
               border: `1px solid ${primaryColor}40`,
             }}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <span
-              className={`block font-black text-base sm:text-lg tracking-tight truncate max-w-[200px] min-[400px]:max-w-[260px] sm:max-w-sm ${
-                isLight ? "text-neutral-950" : "text-white"
-              } ${headingFontClass}`}
+              className={`block font-black tracking-tight truncate ${
+                isPreview
+                  ? "text-xs sm:text-sm max-w-[170px]"
+                  : "text-sm sm:text-lg max-w-[180px] sm:max-w-sm"
+              } ${isLight ? "text-neutral-950" : "text-white"} ${headingFontClass}`}
             >
               {businessName}
             </span>
             {tagline && (
               <span
-                className={`block text-[11px] truncate max-w-[200px] sm:max-w-xs ${
-                  isLight ? "text-neutral-500" : "text-neutral-400"
-                }`}
+                className={`block text-[10px] truncate ${
+                  isPreview ? "max-w-[170px]" : "max-w-[180px] sm:max-w-xs"
+                } ${isLight ? "text-neutral-500" : "text-neutral-400"}`}
               >
                 {tagline}
               </span>
@@ -84,28 +92,30 @@ export default function TemplateNavbar({
           </div>
         </a>
 
-        {/* LIENS DE NAVIGATION DESKTOP */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider">
-          {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className={`transition hover:text-white ${
-                isLight
-                  ? "text-neutral-600 hover:text-neutral-950"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
+        {/* LIENS DE NAVIGATION DESKTOP (Uniquement sur vrai écran desktop) */}
+        {!isPreview && (
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider">
+            {links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`transition hover:text-white ${
+                  isLight
+                    ? "text-neutral-600 hover:text-neutral-950"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        )}
 
         {/* CTA DESKTOP + BOUTON BURGER MOBILE */}
-        <div className="flex items-center gap-3">
-          {phone && (
+        <div className="flex items-center gap-2 shrink-0">
+          {!isPreview && phone && (
             <a
-              href={isPreview ? "#" : `tel:${phone}`}
+              href={`tel:${phone}`}
               style={{ backgroundColor: primaryColor, color: ctaTextColor }}
               className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition"
             >
@@ -114,11 +124,13 @@ export default function TemplateNavbar({
             </a>
           )}
 
-          {/* Bouton burger mobile */}
+          {/* Bouton burger mobile (Toujours visible en preview ou sur mobile réel) */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             type="button"
-            className={`md:hidden p-2.5 rounded-xl border transition cursor-pointer ${
+            className={`${
+              isPreview ? "flex" : "flex md:hidden"
+            } p-2 rounded-xl border transition cursor-pointer ${
               isLight
                 ? "bg-neutral-100 hover:bg-neutral-200 border-neutral-300 text-neutral-800"
                 : "bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-200"
@@ -126,7 +138,7 @@ export default function TemplateNavbar({
             aria-label="Menu"
             aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </div>

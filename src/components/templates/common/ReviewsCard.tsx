@@ -9,6 +9,7 @@ interface ReviewsCardProps {
   primaryColor?: string
   themeMode?: "dark" | "light"
   headingFontClass?: string
+  isPreview?: boolean
 }
 
 export default function ReviewsCard({
@@ -18,6 +19,7 @@ export default function ReviewsCard({
   primaryColor = "#c2410c",
   themeMode = "dark",
   headingFontClass = "",
+  isPreview = false,
 }: ReviewsCardProps) {
   const isLight = themeMode === "light"
   const formattedRating = Number(rating || 4.9).toFixed(1)
@@ -25,46 +27,64 @@ export default function ReviewsCard({
 
   return (
     <div
-      className={`rounded-3xl p-6 sm:p-10 border shadow-2xl overflow-hidden relative ${
+      className={`rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden relative ${
+        isPreview ? "p-4 sm:p-6" : "p-6 sm:p-10"
+      } ${
         isLight
           ? "bg-white border-neutral-200"
           : "bg-neutral-900/90 border-neutral-800"
       }`}
     >
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+      <div
+        className={`grid items-center ${
+          isPreview ? "grid-cols-1 gap-5" : "grid-cols-1 md:grid-cols-12 gap-8"
+        }`}
+      >
         {/* Colonne Note globale */}
-        <div className="md:col-span-5 text-center md:text-left md:border-r md:border-neutral-200 dark:md:border-neutral-800 md:pr-8">
+        <div
+          className={`${
+            isPreview
+              ? "border-b pb-4 text-center"
+              : "md:col-span-5 text-center md:text-left md:border-r md:border-neutral-200 dark:md:border-neutral-800 md:pr-8"
+          }`}
+        >
           <div className="flex items-center justify-center md:justify-start gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} className="w-5 h-5 fill-amber-400 text-amber-400" />
+              <Star key={s} className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-400 text-amber-400" />
             ))}
           </div>
 
           <div className="flex items-baseline justify-center md:justify-start gap-2">
             <span
-              className={`text-4xl sm:text-5xl font-black tracking-tight ${
-                isLight ? "text-neutral-950" : "text-white"
-              } ${headingFontClass}`}
+              className={`font-black tracking-tight ${
+                isPreview ? "text-3xl" : "text-4xl sm:text-5xl"
+              } ${isLight ? "text-neutral-950" : "text-white"} ${headingFontClass}`}
             >
               {formattedRating}
             </span>
-            <span className="text-neutral-500 font-bold text-lg">/ 5</span>
+            <span className="text-neutral-500 font-bold text-base sm:text-lg">/ 5</span>
           </div>
 
           <p
-            className={`mt-2 font-semibold text-sm ${
+            className={`mt-1 sm:mt-2 font-semibold text-xs sm:text-sm ${
               isLight ? "text-neutral-800" : "text-neutral-200"
             }`}
           >
             Excellente réputation locale
           </p>
-          <p className="text-xs text-neutral-400 mt-0.5">
-            Basé sur plus de {formattedCount} retours de clients vérifiés
+          <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
+            Basé sur plus de {formattedCount} avis vérifiés
           </p>
         </div>
 
         {/* Colonne Piliers de confiance */}
-        <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div
+          className={`${
+            isPreview
+              ? "grid grid-cols-1 gap-2.5"
+              : "md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4"
+          }`}
+        >
           <div
             className={`p-4 rounded-2xl border ${
               isLight

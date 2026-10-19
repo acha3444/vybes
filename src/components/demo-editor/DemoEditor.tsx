@@ -648,7 +648,7 @@ export default function DemoEditor({
               </div>
 
               {/* Rendu dynamique du template sélectionné en live avec l'état local */}
-              <div className="flex-1 overflow-y-auto scrollbar-none relative">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none relative">
                 {demo.template_type === "restaurant" && (
                   <RestaurantTemplate content={content} isPreview={true} />
                 )}
