@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowLeft, ShieldCheck, Lock, EyeOff } from "lucide-react"
+import { VybeLogo } from "@/components/ui/VybeLogo"
 
 export const metadata = {
   title: "Politique de Confidentialité | Vybe",
@@ -20,11 +21,8 @@ export default function PolitiqueConfidentialitePage() {
       {/* HEADER */}
       <header className="border-b border-neutral-900 bg-neutral-950/80 backdrop-blur-md sticky top-0 z-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white font-extrabold text-lg">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-sm text-white">
-              V
-            </div>
-            <span>Vybe</span>
+          <Link href="/" className="hover:opacity-95 transition-opacity">
+            <VybeLogo size="sm" variant="standalone" />
           </Link>
 
           <Link

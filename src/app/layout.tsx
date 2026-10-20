@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Vybe | Vends des sites web aux commerces locaux en 60s",
   description:
     "Trouve les commerces sans site web de ta ville, génère leur démo mobile en 60s et envoie un message qui convertit.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

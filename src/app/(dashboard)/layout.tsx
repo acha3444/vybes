@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { LogOut, Sparkles, ExternalLink } from "lucide-react"
 import { SidebarNav, BottomNav } from "@/components/dashboard/NavLinks"
 import { getDaysRemaining } from "@/lib/utils"
+import { VybeLogo } from "@/components/ui/VybeLogo"
 
 export const dynamic = "force-dynamic"
 
@@ -59,18 +60,8 @@ export default async function DashboardLayout({
       <aside className="hidden md:flex flex-col w-64 sticky top-0 h-screen overflow-y-auto bg-neutral-950/60 backdrop-blur-xl border-r border-white/[0.06] p-5 shrink-0 justify-between">
         <div className="space-y-6">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/25 transition-transform duration-500 ease-out-expo group-hover:rotate-[-8deg] group-hover:scale-105">
-              V
-            </div>
-            <div>
-              <span className="font-extrabold text-xl tracking-tight text-white block">
-                Vybe
-              </span>
-              <span className="text-[10px] text-neutral-400 font-medium block uppercase tracking-wider">
-                Prospect & Signe
-              </span>
-            </div>
+          <Link href="/dashboard" className="group transition-transform hover:opacity-95">
+            <VybeLogo size="md" variant="standalone" subtitle="Prospect & Signe" />
           </Link>
 
           {/* Badge statut abonnement */}
@@ -136,13 +127,10 @@ export default async function DashboardLayout({
         {/* TOPBAR MOBILE & DESKTOP */}
         <header className="sticky top-0 z-30 bg-[#07070b]/70 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo Mobile */}
-          <div className="flex items-center gap-2 md:hidden">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-base text-white shadow-md">
-              V
-            </div>
-            <span className="font-extrabold text-lg tracking-tight text-white">
-              Vybe
-            </span>
+          <div className="flex items-center md:hidden">
+            <Link href="/dashboard">
+              <VybeLogo size="sm" variant="standalone" />
+            </Link>
           </div>
 
           <div className="hidden md:block">

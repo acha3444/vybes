@@ -16,6 +16,7 @@ import { Reveal } from "@/components/motion/Reveal"
 import { Spotlight } from "@/components/motion/Spotlight"
 import { HeroVisual } from "@/components/landing/HeroVisual"
 import { RoiCalculator } from "@/components/landing/RoiCalculator"
+import { VybeLogo } from "@/components/ui/VybeLogo"
 
 const STEPS = [
   {
@@ -85,18 +86,12 @@ export default function HomePage() {
       {/* HEADER NAVIGATION */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#07070b]/60 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/30 transition-transform duration-500 ease-out-expo group-hover:rotate-[-8deg] group-hover:scale-105">
-              V
-            </div>
-            <div>
-              <span className="font-black text-xl sm:text-2xl tracking-tight text-white block leading-none">
-                Vybe
-              </span>
-              <span className="hidden sm:block text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-0.5">
-                Vente de sites locaux
-              </span>
-            </div>
+          <Link href="/" className="group transition-transform hover:opacity-95">
+            <VybeLogo
+              size="md"
+              variant="standalone"
+              subtitle="Vente de sites locaux"
+            />
           </Link>
 
           <div className="flex items-center gap-1 sm:gap-3">

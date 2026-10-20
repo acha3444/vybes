@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Sparkles, ShieldCheck } from "lucide-react"
+import { VybeLogo } from "@/components/ui/VybeLogo"
 
 export default function AuthLayout({
   children,
@@ -16,18 +17,12 @@ export default function AuthLayout({
 
       {/* Header avec logo */}
       <header className="relative max-w-md w-full mx-auto flex items-center justify-between py-2">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/25 transition-transform duration-500 ease-out-expo group-hover:rotate-[-8deg] group-hover:scale-105">
-            V
-          </div>
-          <div>
-            <span className="font-extrabold text-2xl tracking-tight text-white block">
-              Vybe
-            </span>
-            <span className="text-[10px] text-neutral-400 font-medium block uppercase tracking-wider">
-              Sites Commerces en 60s
-            </span>
-          </div>
+        <Link href="/" className="group transition-transform hover:opacity-95">
+          <VybeLogo
+            size="md"
+            variant="standalone"
+            subtitle="Sites Commerces en 60s"
+          />
         </Link>
 
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
