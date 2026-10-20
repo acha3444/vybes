@@ -24,15 +24,18 @@ export default function RestaurantTemplate({
   const primaryColor = content.primary_color || "#c2410c"
   const ctaTextColor = getContrastTextColor(primaryColor)
 
+  const hasRealRating = typeof content.rating === "number" && content.rating > 0
+  const validGallery = (content.gallery_images || []).filter(
+    (img) => typeof img === "string" && img.trim().length > 0
+  )
+
   const navLinks = [
     { label: "À propos", href: "#apropos" },
     ...(content.services_or_menu && content.services_or_menu.length > 0
       ? [{ label: "La Carte", href: "#carte" }]
       : []),
-    ...(content.gallery_images && content.gallery_images.length > 0
-      ? [{ label: "Galerie", href: "#galerie" }]
-      : []),
-    { label: "Avis", href: "#avis" },
+    ...(validGallery.length > 0 ? [{ label: "Galerie", href: "#galerie" }] : []),
+    ...(hasRealRating ? [{ label: "Avis", href: "#avis" }] : []),
     { label: "Horaires & Accès", href: "#horaires" },
   ]
 
@@ -47,7 +50,7 @@ export default function RestaurantTemplate({
       {/* 1. HEADER & NAVBAR */}
       <TemplateNavbar
         businessName={content.business_name}
-        tagline="Restaurant & Cuisine de Saison"
+        tagline={content.subtitle || "Restaurant & Cuisine de saison"}
         phone={content.phone}
         primaryColor={primaryColor}
         icon={Utensils}
@@ -61,19 +64,19 @@ export default function RestaurantTemplate({
       <main>
         {/* 2. HERO SECTION GASTRONOMIQUE */}
         <section
-          className={`relative overflow-hidden border-b border-stone-900 ${
-            isPreview ? "pt-4 pb-8" : "pt-8 pb-16 sm:pt-14 sm:pb-24"
+          className={`relative overflow-hidden ${
+            isPreview ? "pt-3 pb-5" : "pt-8 pb-16 sm:pt-14 sm:pb-24 border-b border-stone-900"
           }`}
         >
           <div
             className={`max-w-6xl mx-auto ${
-              isPreview ? "px-3.5 sm:px-5" : "px-4 sm:px-8 lg:px-12"
+              isPreview ? "px-3.5" : "px-4 sm:px-8 lg:px-12"
             }`}
           >
             <div
-              className={`relative rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-800 shadow-2xl ${
+              className={`relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-800 shadow-2xl ${
                 isPreview
-                  ? "min-h-[380px] p-4 sm:p-6"
+                  ? "min-h-[360px] p-4"
                   : "min-h-[460px] sm:min-h-[560px] p-5 sm:p-10 lg:p-14"
               }`}
             >
@@ -116,7 +119,7 @@ export default function RestaurantTemplate({
                 <h1
                   className={`${
                     isPreview
-                      ? "text-xl sm:text-3xl"
+                      ? "text-xl"
                       : "text-2xl sm:text-4xl lg:text-5xl"
                   } font-black text-white tracking-tight text-balance leading-tight ${restaurantHeading.className}`}
                 >
@@ -124,7 +127,11 @@ export default function RestaurantTemplate({
                 </h1>
 
                 {content.tagline && (
-                  <p className="mt-2 text-xs sm:text-base text-stone-300 font-normal leading-relaxed text-balance max-w-xl">
+                  <p
+                    className={`mt-2 ${
+                      isPreview ? "text-xs" : "text-xs sm:text-base"
+                    } text-stone-300 font-normal leading-relaxed text-balance max-w-xl`}
+                  >
                     {content.tagline}
                   </p>
                 )}
@@ -132,8 +139,10 @@ export default function RestaurantTemplate({
                 {/* Boutons d'action hero */}
                 <div
                   className={`flex ${
-                    isPreview ? "flex-col w-full" : "flex-col sm:flex-row"
-                  } items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8`}
+                    isPreview
+                      ? "flex-col w-full items-stretch gap-2 mt-4"
+                      : "flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8"
+                  }`}
                 >
                   {content.phone && (
                     <a
@@ -232,7 +241,7 @@ export default function RestaurantTemplate({
 
               <div className={isPreview ? "w-full" : "lg:col-span-5"}>
                 <ImageWithFallback
-                  src={content.gallery_images && content.gallery_images[0]}
+                  src={validGallery[0] || content.hero_image_url}
                   alt={`Ambiance chaleureuse et salle de restaurant - ${content.business_name}`}
                   aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
                   className="rounded-2xl sm:rounded-3xl border border-stone-800 shadow-2xl"
@@ -285,8 +294,8 @@ export default function RestaurantTemplate({
           </TemplateSection>
         )}
 
-        {/* 5. SECTION GALERIE DE PHOTOS (Masquée si aucune photo) */}
-        {content.gallery_images && content.gallery_images.length > 0 && (
+        {/* 5. SECTION GALERIE DE PHOTOS (Masquée si aucune photo réelle) */}
+        {validGallery.length > 0 && (
           <TemplateSection
             id="galerie"
             badge="En images"
@@ -301,7 +310,7 @@ export default function RestaurantTemplate({
                 isPreview ? "grid-cols-2 gap-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
               }`}
             >
-              {content.gallery_images.map((imgUrl, idx) => (
+              {validGallery.map((imgUrl, idx) => (
                 <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-stone-800">
                   <ImageWithFallback
                     src={imgUrl}
@@ -317,27 +326,29 @@ export default function RestaurantTemplate({
           </TemplateSection>
         )}
 
-        {/* 6. AVIS CLIENTS & RÉPUTATION */}
-        <TemplateSection
-          id="avis"
-          badge="Avis clients"
-          title="Avis clients"
-          subtitle="Ce que partagent nos clients après leur passage à table."
-          primaryColor={primaryColor}
-          headingFontClass={restaurantHeading.className}
-          className="bg-stone-900/30 border-y border-stone-900"
-          isPreview={isPreview}
-        >
-          <ReviewsCard
-            businessName={content.business_name}
-            rating={content.rating}
-            ratingsTotal={content.reviews_count}
+        {/* 6. AVIS CLIENTS & RÉPUTATION (Masquée si aucune note réelle) */}
+        {hasRealRating && (
+          <TemplateSection
+            id="avis"
+            badge="Avis clients"
+            title="Avis clients"
+            subtitle="Retours authentiques partagés par nos clients."
             primaryColor={primaryColor}
-            themeMode="dark"
             headingFontClass={restaurantHeading.className}
+            className="bg-stone-900/30 border-y border-stone-900"
             isPreview={isPreview}
-          />
-        </TemplateSection>
+          >
+            <ReviewsCard
+              businessName={content.business_name}
+              rating={content.rating}
+              ratingsTotal={content.reviews_count}
+              primaryColor={primaryColor}
+              themeMode="dark"
+              headingFontClass={restaurantHeading.className}
+              isPreview={isPreview}
+            />
+          </TemplateSection>
+        )}
 
         {/* 7. HORAIRES & ACCÈS */}
         <TemplateSection

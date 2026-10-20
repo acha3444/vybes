@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { nanoid } from "nanoid"
 import { generateDefaultDemoContent } from "@/lib/templates/defaultContent"
+import { normalizeBusinessName } from "@/lib/templates/nameUtils"
 
 export const dynamic = "force-dynamic"
 
@@ -69,12 +70,13 @@ export default async function CreerDemoPage({
 
   // 5. Génération du code unique de 10 caractères
   const slug = nanoid(10)
+  const cleanBusinessName = normalizeBusinessName(prospect.name)
 
   // 6. Préparation du contenu complet personnalisé
   const defaultContent = {
     ...generateDefaultDemoContent(
       prospect.category,
-      prospect.name,
+      cleanBusinessName,
       prospect.city || "votre ville",
       prospect.address || "",
       prospect.phone || "01 23 45 67 89"

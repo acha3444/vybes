@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Demo, DemoContent } from "@/types/database"
+import { Demo, DemoContent, BusinessCategory } from "@/types/database"
 import RestaurantTemplate from "@/components/templates/RestaurantTemplate"
 import BarberTemplate from "@/components/templates/BarberTemplate"
 import BeautyTemplate from "@/components/templates/BeautyTemplate"
+import { DEFAULT_SUBTITLES } from "@/lib/templates/defaultContent"
+import { normalizeBusinessName } from "@/lib/templates/nameUtils"
 import {
   Sparkles,
   ExternalLink,
@@ -42,7 +44,15 @@ export default function DemoEditor({
   demo: Demo
   rootDomain: string
 }) {
-  const [content, setContent] = useState<DemoContent>(demo.content)
+  const defaultCategorySubtitle =
+    DEFAULT_SUBTITLES[demo.template_type as BusinessCategory] ||
+    "Établissement & Prestations de qualité"
+
+  const [content, setContent] = useState<DemoContent>(() => ({
+    ...demo.content,
+    business_name: normalizeBusinessName(demo.content.business_name),
+    subtitle: demo.content.subtitle || defaultCategorySubtitle,
+  }))
   const [activeTab, setActiveTab] = useState<"text" | "colors" | "photos">("text")
   const [mobileView, setMobileView] = useState<"editor" | "preview">("editor")
   const [saving, setSaving] = useState(false)
@@ -323,6 +333,21 @@ export default function DemoEditor({
 
               <div>
                 <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Sous-titre (en-tête du site)
+                </label>
+                <input
+                  type="text"
+                  placeholder={defaultCategorySubtitle}
+                  value={content.subtitle ?? defaultCategorySubtitle}
+                  onChange={(e) =>
+                    setContent({ ...content, subtitle: e.target.value })
+                  }
+                  className="w-full h-11 px-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Slogan d&apos;accroche
                 </label>
                 <input
@@ -458,28 +483,44 @@ export default function DemoEditor({
                   Couleur d&apos;accentuation principale
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.hex}
-                      type="button"
-                      onClick={() =>
-                        setContent({ ...content, primary_color: preset.hex })
-                      }
-                      className={`p-3 rounded-2xl border flex items-center gap-3 transition-all ${
-                        content.primary_color === preset.hex
-                          ? "border-white bg-neutral-800"
-                          : "border-neutral-800 hover:border-neutral-700 bg-neutral-950"
-                      }`}
-                    >
-                      <span
-                        style={{ backgroundColor: preset.hex }}
-                        className="w-6 h-6 rounded-full shadow-inner border border-white/20"
-                      />
-                      <span className="text-xs font-semibold text-white">
-                        {preset.name}
-                      </span>
-                    </button>
-                  ))}
+                  {COLOR_PRESETS.map((preset) => {
+                    const isSelected =
+                      content.primary_color?.toLowerCase() === preset.hex.toLowerCase()
+                    return (
+                      <button
+                        key={preset.hex}
+                        type="button"
+                        onClick={() =>
+                          setContent({ ...content, primary_color: preset.hex })
+                        }
+                        style={{
+                          borderColor: isSelected ? preset.hex : undefined,
+                          backgroundColor: isSelected ? `${preset.hex}18` : undefined,
+                        }}
+                        className={`p-3 rounded-2xl border-2 flex items-center gap-2.5 transition-all text-left ${
+                          isSelected
+                            ? "shadow-md"
+                            : "border-neutral-800 hover:border-neutral-700 bg-neutral-950"
+                        }`}
+                      >
+                        <span
+                          style={{ backgroundColor: preset.hex }}
+                          className="w-6 h-6 rounded-full shadow-inner border border-white/20 shrink-0"
+                        />
+                        <span className="text-xs font-semibold text-white truncate flex-1">
+                          {preset.name}
+                        </span>
+                        {isSelected && (
+                          <span
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-white shrink-0 shadow-xs"
+                            style={{ backgroundColor: preset.hex }}
+                          >
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -584,6 +625,18 @@ export default function DemoEditor({
                     </div>
                   ))}
                 </div>
+
+                {(!content.gallery_images || content.gallery_images.length === 0) && (
+                  <div className="p-6 rounded-2xl border-2 border-dashed border-neutral-800/80 flex flex-col items-center justify-center text-center bg-neutral-950/40">
+                    <ImageIcon className="w-8 h-8 text-neutral-600 mb-2" />
+                    <p className="text-xs font-bold text-neutral-300">
+                      Aucune photo dans la galerie
+                    </p>
+                    <p className="text-[11px] text-neutral-500 mt-1 max-w-xs">
+                      La section galerie est automatiquement masquée dans l&apos;aperçu pour un rendu toujours impeccable.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -636,7 +689,7 @@ export default function DemoEditor({
                 <span className="text-white">Aperçu en temps réel</span>
               </span>
               <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
-                LIVE REACt
+                En direct
               </span>
             </div>
 

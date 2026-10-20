@@ -33,21 +33,21 @@ export default function TemplateSection({
     <section
       id={id}
       className={`scroll-mt-24 ${
-        isPreview ? "py-8 sm:py-10" : "py-12 sm:py-20 lg:py-24"
+        isPreview ? "py-7" : "py-12 sm:py-20 lg:py-24"
       } ${className}`}
     >
       <div
         className={`max-w-6xl mx-auto ${
-          isPreview ? "px-3.5 sm:px-5" : "px-4 sm:px-8 lg:px-12"
+          isPreview ? "px-3.5" : "px-4 sm:px-8 lg:px-12"
         }`}
       >
         {hasHeader && (
           <div
-            className={`mb-8 sm:mb-14 ${
+            className={`mb-6 sm:mb-14 ${
               align === "center"
                 ? "text-center max-w-2xl mx-auto"
                 : isPreview
-                ? "flex flex-col gap-3"
+                ? "flex flex-col gap-2"
                 : "flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
             }`}
           >
@@ -69,7 +69,7 @@ export default function TemplateSection({
                 <h2
                   className={`font-extrabold tracking-tight text-balance leading-tight ${
                     isPreview
-                      ? "text-lg sm:text-2xl"
+                      ? "text-lg"
                       : "text-2xl sm:text-3xl lg:text-4xl"
                   } ${headingFontClass}`}
                 >

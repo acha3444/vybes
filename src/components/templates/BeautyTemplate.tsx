@@ -24,15 +24,18 @@ export default function BeautyTemplate({
   const primaryColor = content.primary_color || "#be185d"
   const ctaTextColor = getContrastTextColor(primaryColor)
 
+  const hasRealRating = typeof content.rating === "number" && content.rating > 0
+  const validGallery = (content.gallery_images || []).filter(
+    (img) => typeof img === "string" && img.trim().length > 0
+  )
+
   const navLinks = [
     { label: "L'Institut", href: "#apropos" },
     ...(content.services_or_menu && content.services_or_menu.length > 0
       ? [{ label: "Prestations", href: "#prestations" }]
       : []),
-    ...(content.gallery_images && content.gallery_images.length > 0
-      ? [{ label: "Galerie", href: "#galerie" }]
-      : []),
-    { label: "Avis", href: "#avis" },
+    ...(validGallery.length > 0 ? [{ label: "Galerie", href: "#galerie" }] : []),
+    ...(hasRealRating ? [{ label: "Avis", href: "#avis" }] : []),
     { label: "Horaires & Accès", href: "#horaires" },
   ]
 
@@ -47,7 +50,7 @@ export default function BeautyTemplate({
       {/* 1. NAVBAR ÉLÉGANTE EN TONS CLAIRS */}
       <TemplateNavbar
         businessName={content.business_name}
-        tagline="Maison de Beauté & Soins Personnalisés"
+        tagline={content.subtitle || "Institut de beauté & Bien-être"}
         phone={content.phone}
         primaryColor={primaryColor}
         icon={Flower2}
@@ -61,19 +64,19 @@ export default function BeautyTemplate({
       <main>
         {/* 2. HERO SECTION DOUCE & RAFINÉE */}
         <section
-          className={`relative overflow-hidden border-b border-stone-200/80 ${
-            isPreview ? "pt-4 pb-8" : "pt-8 pb-16 sm:pt-14 sm:pb-24"
+          className={`relative overflow-hidden ${
+            isPreview ? "pt-3 pb-5" : "pt-8 pb-16 sm:pt-14 sm:pb-24 border-b border-stone-200/80"
           }`}
         >
           <div
             className={`max-w-6xl mx-auto ${
-              isPreview ? "px-3.5 sm:px-5" : "px-4 sm:px-8 lg:px-12"
+              isPreview ? "px-3.5" : "px-4 sm:px-8 lg:px-12"
             }`}
           >
             <div
-              className={`relative rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-200/80 shadow-2xl ${
+              className={`relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-200/80 shadow-2xl ${
                 isPreview
-                  ? "min-h-[380px] p-4 sm:p-6"
+                  ? "min-h-[360px] p-4"
                   : "min-h-[460px] sm:min-h-[560px] p-5 sm:p-10 lg:p-14"
               }`}
             >
@@ -112,7 +115,7 @@ export default function BeautyTemplate({
                 <h1
                   className={`${
                     isPreview
-                      ? "text-xl sm:text-3xl"
+                      ? "text-xl"
                       : "text-2xl sm:text-4xl lg:text-5xl"
                   } font-normal text-white tracking-tight leading-tight ${beautyHeading.className}`}
                 >
@@ -120,15 +123,21 @@ export default function BeautyTemplate({
                 </h1>
 
                 {content.tagline && (
-                  <p className="mt-2 text-xs sm:text-base text-stone-200 font-light leading-relaxed text-balance max-w-xl">
+                  <p
+                    className={`mt-2 ${
+                      isPreview ? "text-xs" : "text-xs sm:text-base"
+                    } text-stone-200 font-light leading-relaxed text-balance max-w-xl`}
+                  >
                     {content.tagline}
                   </p>
                 )}
 
                 <div
                   className={`flex ${
-                    isPreview ? "flex-col w-full" : "flex-col sm:flex-row"
-                  } items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8`}
+                    isPreview
+                      ? "flex-col w-full items-stretch gap-2 mt-4"
+                      : "flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8"
+                  }`}
                 >
                   {content.phone && (
                     <a
@@ -205,7 +214,7 @@ export default function BeautyTemplate({
 
               <div className={isPreview ? "w-full" : "lg:col-span-5"}>
                 <ImageWithFallback
-                  src={content.gallery_images && content.gallery_images[0]}
+                  src={validGallery[0] || content.hero_image_url}
                   alt={`Cabine de soin et espace détente - ${content.business_name}`}
                   aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
                   className="rounded-2xl sm:rounded-3xl border border-stone-200 shadow-xl"
@@ -258,8 +267,8 @@ export default function BeautyTemplate({
           </TemplateSection>
         )}
 
-        {/* 5. SECTION GALERIE DOUCE */}
-        {content.gallery_images && content.gallery_images.length > 0 && (
+        {/* 5. SECTION GALERIE DOUCE (Masquée si aucune photo réelle) */}
+        {validGallery.length > 0 && (
           <TemplateSection
             id="galerie"
             badge="L'institut"
@@ -274,7 +283,7 @@ export default function BeautyTemplate({
                 isPreview ? "grid-cols-2 gap-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
               }`}
             >
-              {content.gallery_images.map((imgUrl, idx) => (
+              {validGallery.map((imgUrl, idx) => (
                 <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm">
                   <ImageWithFallback
                     src={imgUrl}
@@ -290,27 +299,29 @@ export default function BeautyTemplate({
           </TemplateSection>
         )}
 
-        {/* 6. AVIS CLIENTS */}
-        <TemplateSection
-          id="avis"
-          badge="Avis clients"
-          title="Avis clients"
-          subtitle="Les retours de nos clientes et clients après leur soin."
-          primaryColor={primaryColor}
-          headingFontClass={beautyHeading.className}
-          className="bg-stone-100/60 border-y border-stone-200/80"
-          isPreview={isPreview}
-        >
-          <ReviewsCard
-            businessName={content.business_name}
-            rating={content.rating}
-            ratingsTotal={content.reviews_count}
+        {/* 6. AVIS CLIENTS (Masquée si aucune note réelle) */}
+        {hasRealRating && (
+          <TemplateSection
+            id="avis"
+            badge="Avis clients"
+            title="Avis clients"
+            subtitle="Les retours authentiques de nos clientes et clients après leur soin."
             primaryColor={primaryColor}
-            themeMode="light"
             headingFontClass={beautyHeading.className}
+            className="bg-stone-100/60 border-y border-stone-200/80"
             isPreview={isPreview}
-          />
-        </TemplateSection>
+          >
+            <ReviewsCard
+              businessName={content.business_name}
+              rating={content.rating}
+              ratingsTotal={content.reviews_count}
+              primaryColor={primaryColor}
+              themeMode="light"
+              headingFontClass={beautyHeading.className}
+              isPreview={isPreview}
+            />
+          </TemplateSection>
+        )}
 
         {/* 7. HORAIRES & PLAN */}
         <TemplateSection

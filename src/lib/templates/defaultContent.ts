@@ -33,6 +33,12 @@ export const TEMPLATE_DEFAULT_THEMES = {
   },
 }
 
+export const DEFAULT_SUBTITLES: Record<BusinessCategory, string> = {
+  restaurant: "Restaurant & Cuisine de saison",
+  barber: "Barbier & Coiffure masculine",
+  beauty: "Institut de beauté & Bien-être",
+}
+
 export function generateDefaultDemoContent(
   category: BusinessCategory,
   businessName: string,
@@ -45,6 +51,7 @@ export function generateDefaultDemoContent(
   if (category === "restaurant") {
     return {
       business_name: businessName,
+      subtitle: DEFAULT_SUBTITLES.restaurant,
       tagline: `Cuisine de marché, produits frais & carte de saison`,
       about: `Des arrivages frais chaque matin, une carte courte qui évolue au fil des saisons et des cuissons au feu de bois. Une adresse de quartier pensée pour bien manger et passer un bon moment, le midi comme le soir.`,
       primary_color: theme.primaryColor,
@@ -85,6 +92,7 @@ export function generateDefaultDemoContent(
   if (category === "barber") {
     return {
       business_name: businessName,
+      subtitle: DEFAULT_SUBTITLES.barber,
       tagline: `Coupes de précision, barbes taillées au coupe-choux & soins`,
       about: `Un espace dédié au style masculin. Dégradés millimétrés (taper, fade), taille de barbe à l'ancienne avec rituel serviette chaude, et conseils personnalisés pour l'entretien au quotidien.`,
       primary_color: theme.primaryColor,
@@ -126,6 +134,7 @@ export function generateDefaultDemoContent(
   // beauty
   return {
     business_name: businessName,
+    subtitle: DEFAULT_SUBTITLES.beauty,
     tagline: `Soins experts du visage, onglerie & rituels de détente`,
     about: `Un institut intimiste et lumineux au cœur de ${city}. Protocoles de soins du visage adaptés à chaque type de peau, onglerie soignée et rituels relaxants. Des produits professionnels et une attention portée à chaque détail.`,
     primary_color: theme.primaryColor,

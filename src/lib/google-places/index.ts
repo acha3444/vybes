@@ -28,6 +28,8 @@ interface CacheEntry {
   data: PlaceResult[]
 }
 
+import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+
 const searchCache = new Map<string, CacheEntry>()
 const CACHE_TTL_MS = 15 * 60 * 1000 // 15 minutes
 
@@ -39,18 +41,7 @@ const NAF_CODES = {
 }
 
 function formatBusinessName(rawName: string): string {
-  if (!rawName) return "Commerce local"
-  // Nettoie les sigles juridiques et formate en titre propre
-  let cleaned = rawName
-    .replace(/\b(SARL|SAS|SASU|EURL|SNC|SCI|EI)\b/gi, "")
-    .replace(/\s+/g, " ")
-    .trim()
-
-  return cleaned
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
+  return normalizeBusinessName(rawName)
 }
 
 /**
@@ -237,13 +228,13 @@ async function searchViaGooglePlaces(
     .filter((p: any) => !p.websiteUri || p.websiteUri.trim() === "")
     .map((p: any) => ({
       id: p.id,
-      name: p.displayName?.text || "Commerce",
+      name: normalizeBusinessName(p.displayName?.text || "Commerce"),
       category: (category === "all" ? "restaurant" : category) as any,
       address: p.formattedAddress || city,
       city,
       phone: p.nationalPhoneNumber || null,
-      rating: p.rating ? Number(p.rating.toFixed(1)) : 4.7,
-      userRatingsTotal: p.userRatingCount || 35,
+      rating: p.rating ? Number(p.rating.toFixed(1)) : null,
+      userRatingsTotal: p.userRatingCount || null,
       hasWebsite: false,
       websiteUri: null,
       openingHours: p.regularOpeningHours?.weekdayDescriptions || [],

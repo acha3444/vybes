@@ -46,6 +46,7 @@ export interface Prospect {
 
 export interface DemoContent {
   business_name: string
+  subtitle?: string
   tagline: string
   about: string
   primary_color: string
