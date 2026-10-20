@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { getSafeRedirectPath } from "@/lib/auth/redirect"
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -78,11 +79,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Si déjà connecté et sur une route d'auth -> redirection tableau de bord
+  // Si déjà connecté et sur une route d'auth -> redirection tableau de bord ou destination demandée
   if (isAuthRoute && user) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = "/dashboard"
-    return NextResponse.redirect(redirectUrl)
+    const rawRedirect = request.nextUrl.searchParams.get("redirect") || request.nextUrl.searchParams.get("next")
+    const safePath = getSafeRedirectPath(rawRedirect, "/dashboard")
+    return NextResponse.redirect(new URL(safePath, request.url))
   }
 
   return response

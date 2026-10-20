@@ -4,12 +4,14 @@ import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { getSafeRedirectPath } from "@/lib/auth/redirect"
 import { Mail, Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react"
 
 function ConnexionForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectPath = searchParams.get("redirect") || "/dashboard"
+  const rawRedirect = searchParams.get("redirect") || searchParams.get("next")
+  const redirectPath = getSafeRedirectPath(rawRedirect, "/dashboard")
   const errorParam = searchParams.get("error")
 
   const [email, setEmail] = useState("")

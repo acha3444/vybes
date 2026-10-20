@@ -1,13 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { getSafeRedirectPath } from "@/lib/auth/redirect"
 import { User, Mail, Lock, ArrowRight, AlertCircle, Loader2, CheckCircle2, Sparkles } from "lucide-react"
 
-export default function InscriptionPage() {
+function InscriptionForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const rawRedirect = searchParams.get("redirect") || searchParams.get("next")
+  const redirectPath = getSafeRedirectPath(rawRedirect, "/dashboard")
+
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -58,7 +63,7 @@ export default function InscriptionPage() {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
         },
       })
 
@@ -77,7 +82,7 @@ export default function InscriptionPage() {
 
       if (data.session) {
         // Connecté automatiquement
-        router.push("/dashboard")
+        router.push(redirectPath)
         router.refresh()
       } else {
         // Email de confirmation envoyé
@@ -107,12 +112,12 @@ export default function InscriptionPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
         },
       })
 
       if (error) {
-        setErrorMessage(error.message)
+        setErrorMessage(translateAuthError(error.message))
         setGoogleLoading(false)
       }
     } catch {
@@ -288,5 +293,19 @@ export default function InscriptionPage() {
         </Link>
       </p>
     </div>
+  )
+}
+
+export default function InscriptionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[300px]">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        </div>
+      }
+    >
+      <InscriptionForm />
+    </Suspense>
   )
 }
