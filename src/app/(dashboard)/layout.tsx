@@ -1,15 +1,8 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import {
-  Compass,
-  LayoutDashboard,
-  Users,
-  CreditCard,
-  LogOut,
-  Sparkles,
-  ExternalLink,
-} from "lucide-react"
+import { LogOut, Sparkles, ExternalLink } from "lucide-react"
+import { SidebarNav, BottomNav } from "@/components/dashboard/NavLinks"
 import { getDaysRemaining } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
@@ -58,13 +51,16 @@ export default async function DashboardLayout({
   const isActive = profile.subscription_status === "active"
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white flex flex-col md:flex-row pb-20 md:pb-0 selection:bg-indigo-500 selection:text-white">
+    <div className="relative min-h-screen bg-[#07070b] text-white flex flex-col md:flex-row pb-20 md:pb-0 selection:bg-indigo-500 selection:text-white">
+      {/* Halo d'ambiance discret */}
+      <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
+
       {/* SIDEBAR DESKTOP */}
-      <aside className="hidden md:flex flex-col w-64 bg-neutral-900 border-r border-neutral-800 p-5 shrink-0 justify-between">
+      <aside className="hidden md:flex flex-col w-64 sticky top-0 h-screen overflow-y-auto bg-neutral-950/60 backdrop-blur-xl border-r border-white/[0.06] p-5 shrink-0 justify-between">
         <div className="space-y-6">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/25">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/25 transition-transform duration-500 ease-out-expo group-hover:rotate-[-8deg] group-hover:scale-105">
               V
             </div>
             <div>
@@ -104,39 +100,7 @@ export default async function DashboardLayout({
           </Link>
 
           {/* Navigation links */}
-          <nav className="space-y-1.5 pt-2">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-white bg-neutral-800/80 hover:bg-neutral-800 transition-colors"
-            >
-              <LayoutDashboard className="w-5 h-5 text-indigo-400" />
-              <span>Tableau de bord</span>
-            </Link>
-
-            <Link
-              href="/trouver"
-              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-neutral-850 transition-colors"
-            >
-              <Compass className="w-5 h-5 text-neutral-400" />
-              <span>Trouver un commerce</span>
-            </Link>
-
-            <Link
-              href="/prospects"
-              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-neutral-850 transition-colors"
-            >
-              <Users className="w-5 h-5 text-neutral-400" />
-              <span>Mes prospects</span>
-            </Link>
-
-            <Link
-              href="/abonnement"
-              className="flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-neutral-850 transition-colors"
-            >
-              <CreditCard className="w-5 h-5 text-neutral-400" />
-              <span>Abonnement</span>
-            </Link>
-          </nav>
+          <SidebarNav />
         </div>
 
         {/* Footer Sidebar avec déconnexion */}
@@ -168,9 +132,9 @@ export default async function DashboardLayout({
       </aside>
 
       {/* ZONE CENTRALE */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="relative flex-1 flex flex-col min-w-0">
         {/* TOPBAR MOBILE & DESKTOP */}
-        <header className="sticky top-0 z-30 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800/80 px-4 sm:px-6 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-[#07070b]/70 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo Mobile */}
           <div className="flex items-center gap-2 md:hidden">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-base text-white shadow-md">
@@ -241,39 +205,7 @@ export default async function DashboardLayout({
       </div>
 
       {/* BOTTOM NAVIGATION BAR MOBILE */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 px-3 py-2 flex items-center justify-around md:hidden">
-        <Link
-          href="/dashboard"
-          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 active:text-indigo-400 transition-colors"
-        >
-          <LayoutDashboard className="w-5 h-5 text-indigo-400" />
-          <span className="text-[11px] font-semibold text-white">Accueil</span>
-        </Link>
-
-        <Link
-          href="/trouver"
-          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 transition-colors"
-        >
-          <Compass className="w-5 h-5" />
-          <span className="text-[11px] font-medium">Trouver</span>
-        </Link>
-
-        <Link
-          href="/prospects"
-          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 transition-colors"
-        >
-          <Users className="w-5 h-5" />
-          <span className="text-[11px] font-medium">Prospects</span>
-        </Link>
-
-        <Link
-          href="/abonnement"
-          className="flex flex-col items-center gap-1 py-1 px-3 text-neutral-400 hover:text-indigo-400 transition-colors"
-        >
-          <CreditCard className="w-5 h-5" />
-          <span className="text-[11px] font-medium">Compte</span>
-        </Link>
-      </nav>
+      <BottomNav />
     </div>
   )
 }
