@@ -18,12 +18,33 @@ export default function InscriptionPage() {
 
   const supabase = createClient()
 
+  function translateAuthError(msg: string): string {
+    if (msg === "Load failed" || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+      return "Connexion au serveur impossible : les variables d'environnement Supabase (NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY) ne sont pas configurées sur Vercel. Ajoutez-les dans les Settings de Vercel puis redéployez."
+    }
+    if (msg.includes("already registered") || msg.includes("already exists")) {
+      return "Cet email est déjà enregistré. Connecte-toi directement."
+    }
+    if (msg.includes("Password should be at least")) {
+      return "Le mot de passe doit comporter au moins 6 caractères."
+    }
+    return msg
+  }
+
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault()
     setErrorMessage("")
 
     if (password.length < 6) {
       setErrorMessage("Le mot de passe doit comporter au moins 6 caractères.")
+      return
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+      setErrorMessage(
+        "Configuration manquante sur Vercel : les variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY n'ont pas été ajoutées dans les paramètres de votre projet Vercel. Ajoutez-les dans Vercel > Settings > Environment Variables, puis cliquez sur Redeploy."
+      )
       return
     }
 
@@ -42,7 +63,7 @@ export default function InscriptionPage() {
       })
 
       if (error) {
-        setErrorMessage(error.message)
+        setErrorMessage(translateAuthError(error.message))
         setLoading(false)
         return
       }
@@ -63,14 +84,23 @@ export default function InscriptionPage() {
         setSuccessEmailSent(true)
         setLoading(false)
       }
-    } catch {
-      setErrorMessage("Une erreur imprévue est survenue lors de l'inscription.")
+    } catch (err: any) {
+      setErrorMessage(translateAuthError(err?.message || "Une erreur imprévue est survenue lors de l'inscription."))
       setLoading(false)
     }
   }
 
   async function handleGoogleSignUp() {
     setErrorMessage("")
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+      setErrorMessage(
+        "Configuration manquante sur Vercel : ajoutez les clés Supabase dans les Environment Variables de Vercel puis redéployez."
+      )
+      return
+    }
+
     setGoogleLoading(true)
 
     try {

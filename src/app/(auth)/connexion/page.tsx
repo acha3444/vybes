@@ -22,9 +22,31 @@ function ConnexionForm() {
 
   const supabase = createClient()
 
+  function translateAuthError(msg: string): string {
+    if (msg === "Load failed" || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+      return "Connexion au serveur impossible : les variables d'environnement Supabase (NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY) ne sont pas configurées sur Vercel. Ajoutez-les dans les Settings de Vercel puis redéployez."
+    }
+    if (msg === "Invalid login credentials") {
+      return "Email ou mot de passe incorrect."
+    }
+    if (msg.includes("Email not confirmed")) {
+      return "Veuillez confirmer votre email avant de vous connecter."
+    }
+    return msg
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setErrorMessage("")
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+      setErrorMessage(
+        "Configuration manquante sur Vercel : ajoutez les clés Supabase dans les Environment Variables de Vercel puis redéployez."
+      )
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -34,11 +56,7 @@ function ConnexionForm() {
       })
 
       if (error) {
-        setErrorMessage(
-          error.message === "Invalid login credentials"
-            ? "Email ou mot de passe incorrect."
-            : error.message
-        )
+        setErrorMessage(translateAuthError(error.message))
         setLoading(false)
         return
       }
@@ -47,14 +65,23 @@ function ConnexionForm() {
         router.push(redirectPath)
         router.refresh()
       }
-    } catch {
-      setErrorMessage("Une erreur imprévue est survenue.")
+    } catch (err: any) {
+      setErrorMessage(translateAuthError(err?.message || "Une erreur imprévue est survenue."))
       setLoading(false)
     }
   }
 
   async function handleGoogleLogin() {
     setErrorMessage("")
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+      setErrorMessage(
+        "Configuration manquante sur Vercel : ajoutez les clés Supabase dans les Environment Variables de Vercel puis redéployez."
+      )
+      return
+    }
+
     setGoogleLoading(true)
 
     try {
