@@ -481,3 +481,123 @@ export async function sendUserWelcomeEmail({
     return { success: false, error: err?.message }
   }
 }
+
+/**
+ * Envoie un email de réinitialisation de mot de passe à l'utilisateur.
+ * 100% Dark Mode forcé (ne devient JAMAIS blanc sur iPhone/Mac en mode clair).
+ */
+export async function sendPasswordResetEmail({
+  email,
+  resetUrl,
+}: {
+  email: string
+  resetUrl: string
+}) {
+  if (!resend) return { success: false, error: "RESEND_API_KEY missing" }
+
+  const html = `
+<!DOCTYPE html>
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réinitialisation de ton mot de passe</title>
+  ${DARK_MODE_HEAD_STYLES}
+</head>
+<body bgcolor="#0b0c10" class="body-bg" style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #0b0c10 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff !important;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0b0c10" class="body-bg" style="width: 100% !important; background-color: #0b0c10 !important; margin: 0; padding: 40px 14px; table-layout: fixed;">
+    <tr>
+      <td align="center" bgcolor="#0b0c10" class="body-bg" style="background-color: #0b0c10 !important;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#14161f" class="card-bg" style="max-width: 580px; width: 100% !important; background-color: #14161f !important; border: 1px solid #232738; border-radius: 22px; overflow: hidden; box-shadow: 0 24px 48px rgba(0,0,0,0.6);">
+          
+          <!-- Header Banner -->
+          <tr>
+            <td bgcolor="#1c1a36" style="padding: 38px 32px 28px; background-color: #1c1a36 !important; background: linear-gradient(180deg, #241e4d 0%, #14161f 100%) !important; border-bottom: 1px solid #232738;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 6px 14px; background-color: #241e4d !important; border: 1px solid rgba(91, 75, 255, 0.45); border-radius: 100px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #a89fff !important; letter-spacing: 0.5px; text-transform: uppercase;">
+                      🔐 Sécurité • Compte Vybe
+                    </span>
+                  </td>
+                </tr>
+              </table>
+              <h1 class="force-white" style="font-size: 25px; font-weight: 800; color: #ffffff !important; margin: 18px 0 10px; letter-spacing: -0.5px; line-height: 1.25;">
+                Réinitialisation de ton mot de passe
+              </h1>
+              <p class="force-light" style="font-size: 15px; color: #cbd5e1 !important; line-height: 1.6; margin: 0;">
+                Tu as demandé à réinitialiser le mot de passe de ton compte Vybe (<strong style="color: #ffffff;">${email}</strong>).
+              </p>
+            </td>
+          </tr>
+
+          <!-- Action & Explications -->
+          <tr>
+            <td bgcolor="#14161f" class="card-bg" style="padding: 32px 32px 28px; background-color: #14161f !important;">
+              <p class="force-light" style="font-size: 14px; color: #cbd5e1 !important; line-height: 1.6; margin: 0 0 24px;">
+                Clique sur le bouton ci-dessous pour choisir un nouveau mot de passe sécurisé :
+              </p>
+
+              <!-- Bouton CTA -->
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 28px;">
+                <tr>
+                  <td align="center">
+                    <a href="${resetUrl}" target="_blank" style="display: inline-block; background-color: #5b4bff !important; background: linear-gradient(135deg, #5b4bff 0%, #4333ea 100%) !important; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 700; padding: 15px 36px; border-radius: 14px; box-shadow: 0 4px 18px rgba(91,75,255,0.45); text-align: center;">
+                      Changer mon mot de passe &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Boîte d'info sécurité -->
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0d0e15" class="inner-bg" style="background-color: #0d0e15 !important; border: 1px solid #1f2333; border-radius: 14px; padding: 16px 20px;">
+                <tr>
+                  <td>
+                    <div style="font-size: 12px; font-weight: 700; color: #a89fff !important; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                      ⏱️ Validité du lien : 1 heure
+                    </div>
+                    <div class="force-muted" style="font-size: 13px; color: #94a3b8 !important; line-height: 1.5;">
+                      Si tu n'as pas demandé cette réinitialisation, ignore simplement cet email : ton mot de passe actuel reste inchangé et ton compte est en sécurité.
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#0f1017" style="padding: 22px 32px; background-color: #0f1017 !important; border-top: 1px solid #1f2333; text-align: center;">
+              <p class="force-muted" style="margin: 0; font-size: 12px; color: #64748b !important; line-height: 1.5;">
+                Vybe — SaaS de prospection commerciale pour freelances web.<br/>
+                Cet email automatique a été envoyé suite à une demande de réinitialisation.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `
+
+  try {
+    const result = await resend.emails.send({
+      from: defaultFrom,
+      to: email,
+      subject: `🔐 Réinitialisation de ton mot de passe Vybe`,
+      html,
+    })
+
+    if (result.error) {
+      console.error("[Email] Erreur Resend mot de passe oublié :", result.error)
+      return { success: false, error: result.error.message }
+    }
+
+    return { success: true, id: result.data?.id }
+  } catch (err: any) {
+    console.error("[Email] Exception mot de passe oublié :", err)
+    return { success: false, error: err?.message }
+  }
+}

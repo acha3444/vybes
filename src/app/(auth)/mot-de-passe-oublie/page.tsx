@@ -19,20 +19,31 @@ export default function MotDePasseOubliePage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       })
 
-      if (error) {
-        setErrorMessage(error.message)
-        setLoading(false)
-        return
+      if (!res.ok) {
+        // En cas d'indisponibilité de la route API, repli sur le client Supabase
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/callback?next=/reinitialiser-mot-de-passe`,
+        })
       }
 
       setSuccess(true)
       setLoading(false)
     } catch {
-      setErrorMessage("Impossible d'envoyer l'email de réinitialisation.")
+      // Repli gracieux
+      try {
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/callback?next=/reinitialiser-mot-de-passe`,
+        })
+        setSuccess(true)
+      } catch {
+        setErrorMessage("Impossible d'envoyer l'email de réinitialisation.")
+      }
       setLoading(false)
     }
   }
