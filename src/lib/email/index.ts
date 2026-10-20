@@ -6,6 +6,91 @@ const defaultFrom = process.env.EMAIL_FROM || "Vybe <onboarding@resend.dev>"
 
 export const resend = resendApiKey ? new Resend(resendApiKey) : null
 
+/**
+ * Retourne l'URL publique absolue de l'application en ligne.
+ * Évite scrupuleusement localhost dans les emails reçus sur smartphone ou client externe.
+ */
+export function getBaseAppUrl(): string {
+  // 1. Si NEXT_PUBLIC_APP_URL est défini et n'est pas un localhost
+  if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")
+  }
+  // 2. Si déployé sur Vercel avec domaine officiel
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  // 3. Domaine Vercel de production par défaut de l'application Vybe
+  return "https://vybes-lilac.vercel.app"
+}
+
+/**
+ * CSS commun forçant le Dark Mode à 100% sur Apple Mail, Gmail, Outlook et mobile.
+ * Empêche l'inversion automatique en blanc quand le téléphone/ordinateur est en Mode Clair.
+ */
+const DARK_MODE_HEAD_STYLES = `
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <style type="text/css">
+    :root {
+      color-scheme: light dark;
+      supported-color-schemes: light dark;
+    }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background-color: #0b0c10 !important;
+      background: #0b0c10 !important;
+      color: #ffffff !important;
+    }
+    /* Force le fond sombre même si le client mail est en mode clair */
+    @media (prefers-color-scheme: light) {
+      .body-bg, table.body-bg, td.body-bg {
+        background-color: #0b0c10 !important;
+        background: #0b0c10 !important;
+      }
+      .card-bg, table.card-bg, td.card-bg {
+        background-color: #14161f !important;
+        background: #14161f !important;
+      }
+      .inner-bg, table.inner-bg, td.inner-bg {
+        background-color: #0d0e15 !important;
+        background: #0d0e15 !important;
+      }
+      .force-white {
+        color: #ffffff !important;
+      }
+      .force-light {
+        color: #cbd5e1 !important;
+      }
+      .force-muted {
+        color: #94a3b8 !important;
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      .body-bg, table.body-bg, td.body-bg {
+        background-color: #0b0c10 !important;
+        background: #0b0c10 !important;
+      }
+      .card-bg, table.card-bg, td.card-bg {
+        background-color: #14161f !important;
+        background: #14161f !important;
+      }
+      .inner-bg, table.inner-bg, td.inner-bg {
+        background-color: #0d0e15 !important;
+        background: #0d0e15 !important;
+      }
+    }
+    /* Fix pour l'application Gmail mobile (Android / iOS) */
+    [data-ogsc] .body-bg { background-color: #0b0c10 !important; }
+    [data-ogsc] .card-bg { background-color: #14161f !important; }
+    [data-ogsc] .inner-bg { background-color: #0d0e15 !important; }
+    [data-ogsc] .force-white { color: #ffffff !important; }
+  </style>
+`
+
 interface SignupNotificationParams {
   email: string
   fullName?: string | null
@@ -41,81 +126,77 @@ export async function sendAdminSignupNotification({
 
   const html = `
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nouveau freelance inscrit sur Vybe</title>
+  ${DARK_MODE_HEAD_STYLES}
 </head>
-<body style="margin: 0; padding: 0; background-color: #0b0c10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0b0c10; padding: 40px 16px;">
+<body bgcolor="#0b0c10" class="body-bg" style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #0b0c10 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff !important;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0b0c10" class="body-bg" style="width: 100% !important; background-color: #0b0c10 !important; margin: 0; padding: 40px 16px;">
     <tr>
-      <td align="center">
-        <table role="presentation" width="100%" style="max-width: 560px; background-color: #14161f; border: 1px solid #232738; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+      <td align="center" bgcolor="#0b0c10" class="body-bg" style="background-color: #0b0c10 !important;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#14161f" class="card-bg" style="max-width: 580px; width: 100% !important; background-color: #14161f !important; border: 1px solid #232738; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
           <!-- Header Branding -->
           <tr>
-            <td style="padding: 32px 32px 24px; border-bottom: 1px solid #232738; background: linear-gradient(180deg, rgba(91,75,255,0.15) 0%, rgba(20,22,31,0) 100%);">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <div style="display: inline-block; padding: 6px 14px; background: rgba(91, 75, 255, 0.2); border: 1px solid rgba(91, 75, 255, 0.4); border-radius: 100px; font-size: 12px; font-weight: 700; color: #a89fff; letter-spacing: 0.5px; text-transform: uppercase;">
-                      ⚡️ Vybe Notifications
-                    </div>
-                    <h1 style="margin: 16px 0 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
-                      🎉 Nouvelle inscription !
-                    </h1>
-                    <p style="margin: 6px 0 0; font-size: 14px; color: #94a3b8;">
-                      Un nouveau freelance vient de rejoindre la plateforme.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+            <td bgcolor="#1c1a36" style="padding: 36px 32px 26px; border-bottom: 1px solid #232738; background-color: #1c1a36 !important; background: linear-gradient(180deg, #241e4d 0%, #14161f 100%) !important;">
+              <div style="display: inline-block; padding: 6px 14px; background-color: #241e4d !important; border: 1px solid rgba(91, 75, 255, 0.4); border-radius: 100px; font-size: 12px; font-weight: 700; color: #a89fff !important; letter-spacing: 0.5px; text-transform: uppercase;">
+                ⚡️ Vybe Notifications
+              </div>
+              <h1 class="force-white" style="margin: 18px 0 0; font-size: 24px; font-weight: 800; color: #ffffff !important; letter-spacing: -0.5px;">
+                🎉 Nouvelle inscription !
+              </h1>
+              <p class="force-muted" style="margin: 6px 0 0; font-size: 14px; color: #94a3b8 !important;">
+                Un nouveau freelance vient de rejoindre la plateforme.
+              </p>
             </td>
           </tr>
 
           <!-- Informations Utilisateur -->
           <tr>
-            <td style="padding: 28px 32px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0d0e15; border: 1px solid #1f2333; border-radius: 14px; padding: 20px;">
+            <td bgcolor="#14161f" class="card-bg" style="padding: 28px 32px; background-color: #14161f !important;">
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0d0e15" class="inner-bg" style="background-color: #0d0e15 !important; border: 1px solid #1f2333; border-radius: 14px;">
                 <tr>
-                  <td style="padding: 8px 12px; border-bottom: 1px solid #1f2333;">
-                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Nom complet</span>
-                    <div style="font-size: 16px; font-weight: 700; color: #ffffff; margin-top: 4px;">${displayName}</div>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #1f2333;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.5px;">Nom complet</div>
+                    <div class="force-white" style="font-size: 16px; font-weight: 700; color: #ffffff !important; margin-top: 4px;">${displayName}</div>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 12px; border-bottom: 1px solid #1f2333;">
-                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Adresse Email</span>
-                    <div style="font-size: 15px; font-weight: 600; color: #5b4bff; margin-top: 4px;">
-                      <a href="mailto:${email}" style="color: #7b6dff; text-decoration: none;">${email}</a>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #1f2333;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.5px;">Adresse Email</div>
+                    <div style="font-size: 15px; font-weight: 600; margin-top: 4px;">
+                      <a href="mailto:${email}" style="color: #a89fff !important; text-decoration: none;">${email}</a>
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 12px; border-bottom: 1px solid #1f2333;">
-                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Méthode de connexion</span>
-                    <div style="font-size: 14px; font-weight: 600; color: #e2e8f0; margin-top: 4px;">${providerLabel}</div>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #1f2333;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.5px;">Méthode d'inscription</div>
+                    <div class="force-light" style="font-size: 14px; font-weight: 600; color: #e2e8f0 !important; margin-top: 4px;">${providerLabel}</div>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 12px; border-bottom: 1px solid #1f2333;">
-                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Statut abonnement</span>
-                    <div style="font-size: 14px; font-weight: 600; color: #34d399; margin-top: 4px;">
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #1f2333;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.5px;">Statut abonnement</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #34d399 !important; margin-top: 4px;">
                       ✅ Essai gratuit 7 jours activé
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 12px;">
-                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Date d'inscription</span>
-                    <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">${formattedDate}</div>
+                  <td style="padding: 14px 18px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.5px;">Date d'inscription</div>
+                    <div class="force-muted" style="font-size: 13px; color: #94a3b8 !important; margin-top: 4px;">${formattedDate}</div>
                   </td>
                 </tr>
                 ${
                   userId
                     ? `<tr>
-                        <td style="padding: 8px 12px; border-top: 1px solid #1f2333;">
-                          <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">User ID</span>
-                          <div style="font-size: 11px; color: #64748b; font-family: monospace; margin-top: 2px;">${userId}</div>
+                        <td style="padding: 10px 18px; border-top: 1px solid #1f2333;">
+                          <div style="font-size: 11px; font-weight: 700; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.5px;">User ID</div>
+                          <div style="font-size: 11px; color: #64748b !important; font-family: monospace; margin-top: 2px;">${userId}</div>
                         </td>
                       </tr>`
                     : ""
@@ -123,10 +204,10 @@ export async function sendAdminSignupNotification({
               </table>
 
               <!-- Bouton d'action -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 24px;">
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 26px;">
                 <tr>
                   <td align="center">
-                    <a href="https://supabase.com/dashboard/project/jgvddxtpeqapipglxauj/editor" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #5b4bff 0%, #4333ea 100%); color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 13px 28px; border-radius: 12px; box-shadow: 0 4px 14px rgba(91,75,255,0.4);">
+                    <a href="https://supabase.com/dashboard/project/jgvddxtpeqapipglxauj/editor" target="_blank" style="display: inline-block; background-color: #5b4bff !important; background: linear-gradient(135deg, #5b4bff 0%, #4333ea 100%) !important; color: #ffffff !important; text-decoration: none; font-size: 14px; font-weight: 700; padding: 13px 30px; border-radius: 12px; box-shadow: 0 4px 14px rgba(91,75,255,0.4);">
                       Voir dans Supabase &rarr;
                     </a>
                   </td>
@@ -137,8 +218,8 @@ export async function sendAdminSignupNotification({
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 20px 32px; background-color: #0f1017; border-top: 1px solid #1f2333; text-align: center;">
-              <p style="margin: 0; font-size: 12px; color: #64748b;">
+            <td bgcolor="#0f1017" style="padding: 20px 32px; background-color: #0f1017 !important; border-top: 1px solid #1f2333; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #64748b !important;">
                 Vybe — SaaS de prospection commerciale pour freelances web.<br/>
                 Notification automatique générée par le système d'authentification.
               </p>
@@ -190,20 +271,35 @@ export async function sendAdminPaymentNotification({
   const html = `
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="utf-8"></head>
-<body style="background-color: #0b0c10; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #ffffff; padding: 40px 16px;">
-  <table role="presentation" width="100%" style="max-width: 520px; margin: 0 auto; background-color: #14161f; border: 1px solid #232738; border-radius: 20px; overflow: hidden;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouveau paiement Stripe</title>
+  ${DARK_MODE_HEAD_STYLES}
+</head>
+<body bgcolor="#0b0c10" class="body-bg" style="margin: 0; padding: 0; background-color: #0b0c10 !important; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #ffffff !important;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0b0c10" class="body-bg" style="width: 100% !important; background-color: #0b0c10 !important; padding: 40px 16px;">
     <tr>
-      <td style="padding: 32px; text-align: center; background: linear-gradient(180deg, rgba(52,211,153,0.15) 0%, rgba(20,22,31,0) 100%);">
-        <div style="font-size: 40px; margin-bottom: 8px;">💰</div>
-        <h1 style="font-size: 22px; font-weight: 800; color: #ffffff; margin: 0;">Nouveau paiement Stripe reçu !</h1>
-        <p style="font-size: 14px; color: #34d399; font-weight: 700; margin-top: 8px;">${amountFormatted} — ${planName}</p>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 24px 32px; color: #cbd5e1; font-size: 14px;">
-        <p><strong>Client :</strong> ${customerEmail}</p>
-        <p><strong>Date :</strong> ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}</p>
+      <td align="center" bgcolor="#0b0c10" class="body-bg" style="background-color: #0b0c10 !important;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#14161f" class="card-bg" style="max-width: 520px; background-color: #14161f !important; border: 1px solid #232738; border-radius: 20px; overflow: hidden;">
+          <tr>
+            <td bgcolor="#0f291e" style="padding: 34px 28px; text-align: center; background-color: #0f291e !important; background: linear-gradient(180deg, #133a2a 0%, #14161f 100%) !important;">
+              <div style="font-size: 42px; margin-bottom: 8px;">💰</div>
+              <h1 class="force-white" style="font-size: 22px; font-weight: 800; color: #ffffff !important; margin: 0;">Nouveau paiement Stripe reçu !</h1>
+              <p style="font-size: 15px; color: #34d399 !important; font-weight: 700; margin-top: 8px;">${amountFormatted} — ${planName}</p>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#14161f" class="card-bg" style="padding: 24px 32px; background-color: #14161f !important;">
+              <p class="force-light" style="color: #cbd5e1 !important; font-size: 14px; margin: 0 0 10px;">
+                <strong>Client :</strong> ${customerEmail}
+              </p>
+              <p class="force-muted" style="color: #94a3b8 !important; font-size: 13px; margin: 0;">
+                <strong>Date :</strong> ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}
+              </p>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
   </table>
@@ -227,7 +323,8 @@ export async function sendAdminPaymentNotification({
 
 /**
  * Envoie un email de bienvenue à l'utilisateur qui s'inscrit.
- * Note : nécessite un domaine vérifié sur Resend pour envoyer vers un email externe.
+ * 100% Dark Mode forcé (ne devient JAMAIS blanc sur iPhone/Mac en mode clair).
+ * Le lien pointe vers l'application de production réelle.
  */
 export async function sendUserWelcomeEmail({
   email,
@@ -239,48 +336,125 @@ export async function sendUserWelcomeEmail({
   if (!resend) return { success: false, error: "RESEND_API_KEY missing" }
 
   const firstName = fullName ? fullName.split(" ")[0] : "Freelance"
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vybe-saas.vercel.app"
+  const appUrl = getBaseAppUrl()
 
   const html = `
 <!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="utf-8"></head>
-<body style="background-color: #0b0c10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; margin: 0; padding: 40px 16px;">
-  <table role="presentation" width="100%" style="max-width: 560px; margin: 0 auto; background-color: #14161f; border: 1px solid #232738; border-radius: 20px; overflow: hidden;">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenue sur Vybe ! 🚀</title>
+  ${DARK_MODE_HEAD_STYLES}
+</head>
+<body bgcolor="#0b0c10" class="body-bg" style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #0b0c10 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff !important;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0b0c10" class="body-bg" style="width: 100% !important; background-color: #0b0c10 !important; margin: 0; padding: 40px 14px; table-layout: fixed;">
     <tr>
-      <td style="padding: 32px; background: linear-gradient(180deg, rgba(91,75,255,0.2) 0%, rgba(20,22,31,0) 100%);">
-        <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 10px;">
-          Bienvenue sur Vybe, ${firstName} ! 🚀
-        </h1>
-        <p style="font-size: 15px; color: #cbd5e1; line-height: 1.6; margin: 0;">
-          Ton essai gratuit de 7 jours est officiellement actif. Voici comment signer ton premier client commerçant dès aujourd'hui :
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 24px 32px;">
-        <ol style="font-size: 14px; color: #cbd5e1; line-height: 1.8; padding-left: 20px; margin: 0 0 24px;">
-          <li><strong style="color: #ffffff;">Cherche un commerce :</strong> Tape un restaurant, barbier ou institut sur ta ville.</li>
-          <li><strong style="color: #ffffff;">Génère sa démo en 60s :</strong> Vybe importe ses infos Google, son logo et adapte les couleurs.</li>
-          <li><strong style="color: #ffffff;">Envoie son lien :</strong> Le commerçant découvre son site interactif, et tu reçois une alerte dès qu'il clique.</li>
-        </ol>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+      <td align="center" bgcolor="#0b0c10" class="body-bg" style="background-color: #0b0c10 !important;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#14161f" class="card-bg" style="max-width: 580px; width: 100% !important; background-color: #14161f !important; border: 1px solid #232738; border-radius: 22px; overflow: hidden; box-shadow: 0 24px 48px rgba(0,0,0,0.6);">
+          
+          <!-- Header Banner -->
           <tr>
-            <td align="center">
-              <a href="${appUrl}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #5b4bff 0%, #4333ea 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(91,75,255,0.4);">
-                Créer ma première démo &rarr;
-              </a>
+            <td bgcolor="#1c1a36" style="padding: 38px 32px 28px; background-color: #1c1a36 !important; background: linear-gradient(180deg, #241e4d 0%, #14161f 100%) !important; border-bottom: 1px solid #232738;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 6px 14px; background-color: #241e4d !important; border: 1px solid rgba(91, 75, 255, 0.45); border-radius: 100px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #a89fff !important; letter-spacing: 0.5px; text-transform: uppercase;">
+                      ⚡️ vybe • Démarrage rapide
+                    </span>
+                  </td>
+                </tr>
+              </table>
+              <h1 class="force-white" style="font-size: 26px; font-weight: 800; color: #ffffff !important; margin: 18px 0 10px; letter-spacing: -0.5px; line-height: 1.25;">
+                Bienvenue sur Vybe, ${firstName} ! 🚀
+              </h1>
+              <p class="force-light" style="font-size: 15px; color: #cbd5e1 !important; line-height: 1.6; margin: 0;">
+                Ton essai gratuit de 7 jours est officiellement actif. Décroche ton premier client commerçant dès aujourd'hui en suivant ces 3 étapes simples :
+              </p>
+            </td>
+          </tr>
+
+          <!-- 3 Étapes claires -->
+          <tr>
+            <td bgcolor="#14161f" class="card-bg" style="padding: 28px 32px; background-color: #14161f !important;">
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0d0e15" class="inner-bg" style="background-color: #0d0e15 !important; border: 1px solid #1f2333; border-radius: 16px; margin-bottom: 26px;">
+                
+                <!-- Étape 1 -->
+                <tr>
+                  <td style="padding: 18px 20px 14px;">
+                    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" style="width: 38px;">
+                          <div style="width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background-color: #5b4bff !important; color: #ffffff !important; font-weight: 800; font-size: 13px;">1</div>
+                        </td>
+                        <td valign="top">
+                          <div class="force-white" style="color: #ffffff !important; font-size: 15px; font-weight: 700;">Trouve un commerce local</div>
+                          <div class="force-muted" style="color: #94a3b8 !important; font-size: 13px; margin-top: 4px; line-height: 1.5;">Va dans l'onglet <em>Trouver</em> et recherche un restaurant, barbier ou institut qui n'a pas de site moderne.</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Étape 2 -->
+                <tr>
+                  <td style="padding: 10px 20px 14px; border-top: 1px solid #171926;">
+                    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" style="width: 38px;">
+                          <div style="width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background-color: #5b4bff !important; color: #ffffff !important; font-weight: 800; font-size: 13px;">2</div>
+                        </td>
+                        <td valign="top">
+                          <div class="force-white" style="color: #ffffff !important; font-size: 15px; font-weight: 700;">Génère sa démo en 60 secondes</div>
+                          <div class="force-muted" style="color: #94a3b8 !important; font-size: 13px; margin-top: 4px; line-height: 1.5;">Vybe extrait automatiquement ses avis réels, ses coordonnées et crée un site mobile ultra immersif.</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Étape 3 -->
+                <tr>
+                  <td style="padding: 10px 20px 18px; border-top: 1px solid #171926;">
+                    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" style="width: 38px;">
+                          <div style="width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background-color: #5b4bff !important; color: #ffffff !important; font-weight: 800; font-size: 13px;">3</div>
+                        </td>
+                        <td valign="top">
+                          <div class="force-white" style="color: #ffffff !important; font-size: 15px; font-weight: 700;">Envoie le lien personnalisé</div>
+                          <div class="force-muted" style="color: #94a3b8 !important; font-size: 13px; margin-top: 4px; line-height: 1.5;">Partage le lien par SMS, WhatsApp ou Instagram. Dès qu'il l'ouvre, le compteur de visites grimpe en direct sur ton dashboard.</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+              </table>
+
+              <!-- Bouton CTA vers Dashboard Réel -->
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="${appUrl}/dashboard" target="_blank" style="display: inline-block; background-color: #5b4bff !important; background: linear-gradient(135deg, #5b4bff 0%, #4333ea 100%) !important; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 700; padding: 15px 36px; border-radius: 14px; box-shadow: 0 4px 18px rgba(91,75,255,0.45); text-align: center;">
+                      Lancer mon dashboard &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#0f1017" style="padding: 22px 32px; background-color: #0f1017 !important; border-top: 1px solid #1f2333; text-align: center;">
+              <p class="force-muted" style="margin: 0; font-size: 12px; color: #64748b !important; line-height: 1.5;">
+                Besoin d'un coup de main pour contacter tes premiers commerçants ?<br/>
+                Réponds simplement à cet email, nous sommes là pour t'aider.
+              </p>
             </td>
           </tr>
         </table>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 20px 32px; background-color: #0f1017; border-top: 1px solid #1f2333; text-align: center;">
-        <p style="margin: 0; font-size: 12px; color: #64748b;">
-          Une question ? Réponds simplement à cet email, nous sommes là pour t'aider.
-        </p>
       </td>
     </tr>
   </table>
@@ -303,8 +477,6 @@ export async function sendUserWelcomeEmail({
 
     return { success: true, id: result.data?.id }
   } catch (err: any) {
-    // Dans le sandbox gratuit sans domaine propre, Resend bloque les envois vers d'autres emails.
-    // On capture sans faire crasher l'app.
     console.warn("[Email] Bienvenue utilisateur non délivrée (domaine personnalisé requis sur Resend) :", err?.message)
     return { success: false, error: err?.message }
   }
