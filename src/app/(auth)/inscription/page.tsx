@@ -80,6 +80,18 @@ function InscriptionForm() {
         return
       }
 
+      // Notifie l'admin par email via Resend
+      fetch("/api/auth/notify-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          fullName,
+          provider: "email",
+          userId: data.user?.id,
+        }),
+      }).catch((e) => console.warn("[Inscription] Alerte admin ignorée:", e))
+
       if (data.session) {
         // Connecté automatiquement
         router.push(redirectPath)

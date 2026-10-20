@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendAdminPaymentNotification } from "@/lib/email"
 import Stripe from "stripe"
 
 export const dynamic = "force-dynamic"
@@ -74,6 +75,16 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString(),
             })
             .eq("id", userId)
+
+          // Alerte email pour l'admin
+          sendAdminPaymentNotification({
+            customerEmail:
+              session.customer_details?.email ||
+              session.customer_email ||
+              "Client Vybe",
+            amountFormatted: `${((session.amount_total || 2900) / 100).toFixed(2)} €`,
+            planName: "Abonnement Pro Vybe",
+          }).catch((err) => console.warn("[Stripe Webhook] Alerte paiement ignorée:", err))
         }
         break
       }

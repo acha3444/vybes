@@ -10,8 +10,27 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      if (data?.user) {
+        try {
+          const createdAt = new Date(data.user.created_at).getTime()
+          const isNewUser = Date.now() - createdAt < 5 * 60 * 1000 // 5 dernières minutes
+
+          if (isNewUser) {
+            const { sendAdminSignupNotification } = await import("@/lib/email")
+            await sendAdminSignupNotification({
+              email: data.user.email || "",
+              fullName: (data.user.user_metadata?.full_name as string) || null,
+              provider: (data.user.app_metadata?.provider as string) || "oauth",
+              userId: data.user.id,
+            }).catch((err) => console.warn("[auth/callback] Resend notify warning:", err))
+          }
+        } catch (e) {
+          console.warn("[auth/callback] Notification nouvel utilisateur ignorée:", e)
+        }
+      }
+
       return NextResponse.redirect(new URL(safeNext, origin))
     }
   }
