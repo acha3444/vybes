@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Demo, DemoContent, BusinessCategory } from "@/types/database"
 import RestaurantTemplate from "@/components/templates/RestaurantTemplate"
@@ -8,12 +8,11 @@ import BarberTemplate from "@/components/templates/BarberTemplate"
 import BeautyTemplate from "@/components/templates/BeautyTemplate"
 import { DEFAULT_SUBTITLES } from "@/lib/templates/defaultContent"
 import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+import { getDemoUrl, formatExpirationDate } from "@/lib/utils"
 import {
-  Sparkles,
   ExternalLink,
   Copy,
   Check,
-  Save,
   Type,
   Palette,
   Image as ImageIcon,
@@ -29,17 +28,16 @@ import {
 } from "lucide-react"
 
 const COLOR_PRESETS = [
-  { name: "Terracotta Chaud", hex: "#c2410c" },
-  { name: "Or Brossé", hex: "#eab308" },
-  { name: "Framboise Élégant", hex: "#be185d" },
-  { name: "Émeraude Chic", hex: "#059669" },
-  { name: "Indigo Pur", hex: "#4f46e5" },
-  { name: "Ardoise / Noir", hex: "#1c1917" },
+  { name: "Terracotta", hex: "#c2410c" },
+  { name: "Or mat", hex: "#eab308" },
+  { name: "Framboise", hex: "#be185d" },
+  { name: "Émeraude", hex: "#059669" },
+  { name: "Violet Vybe", hex: "#6c5ce7" },
+  { name: "Ardoise", hex: "#1c1917" },
 ]
 
 export default function DemoEditor({
   demo,
-  rootDomain,
 }: {
   demo: Demo
   rootDomain: string
@@ -52,43 +50,48 @@ export default function DemoEditor({
     ...demo.content,
     business_name: normalizeBusinessName(demo.content.business_name),
     subtitle: demo.content.subtitle || defaultCategorySubtitle,
+    services_or_menu: demo.content.services_or_menu || [],
   }))
+
   const [activeTab, setActiveTab] = useState<"text" | "colors" | "photos">("text")
   const [mobileView, setMobileView] = useState<"editor" | "preview">("editor")
-  const [saving, setSaving] = useState(false)
-  const [savedSuccess, setSavedSuccess] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [copiedLink, setCopiedLink] = useState(false)
   const [extending, setExtending] = useState(false)
   const [extendedSuccess, setExtendedSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
 
-  const demoUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/demo/${demo.slug}`
-    : `http://${rootDomain}/demo/${demo.slug}`
+  const isInitialMount = useRef(true)
+  const demoUrl = getDemoUrl(demo.slug)
 
-  async function handleSave() {
-    setSaving(true)
-    setSavedSuccess(false)
-
-    try {
-      const res = await fetch(`/api/demos/${demo.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      })
-
-      if (res.ok) {
-        setSavedSuccess(true)
-        setTimeout(() => setSavedSuccess(false), 3000)
-      } else {
-        alert("Erreur lors de la sauvegarde")
-      }
-    } catch (err) {
-      console.error("Erreur de sauvegarde :", err)
-    } finally {
-      setSaving(false)
+  // Enregistrement automatique avec état discret (debounced 800ms)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
     }
-  }
+
+    setSaveStatus("saving")
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/demos/${demo.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+        })
+        if (res.ok) {
+          setSaveStatus("saved")
+        } else {
+          setSaveStatus("error")
+        }
+      } catch (err) {
+        console.error("Erreur auto-save :", err)
+        setSaveStatus("error")
+      }
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [content, demo.id])
 
   async function handleExtend() {
     if (extending) return
@@ -114,7 +117,7 @@ export default function DemoEditor({
   function handleCopyLink() {
     navigator.clipboard.writeText(demoUrl)
     setCopiedLink(true)
-    setTimeout(() => setCopiedLink(false), 2500)
+    setTimeout(() => setCopiedLink(false), 2000)
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, target: "hero" | "gallery") {
@@ -156,7 +159,7 @@ export default function DemoEditor({
       ...prev,
       services_or_menu: [
         ...(prev.services_or_menu || []),
-        { name: "Nouvelle formule / Plat", price: "15 €", desc: "Description du service ou ingrédients frais" },
+        { name: "", price: "", desc: "" },
       ],
     }))
   }
@@ -169,148 +172,185 @@ export default function DemoEditor({
     })
   }
 
+  // Formatage du prix au format français (ex: 8,50 €)
+  function handlePriceBlur(index: number, rawVal: string) {
+    if (!rawVal.trim()) return
+    const cleaned = rawVal.replace(/[^\d,.-]/g, "").replace(",", ".")
+    const num = parseFloat(cleaned)
+    if (!isNaN(num)) {
+      const formatted = new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: num % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2,
+      }).format(num)
+      updateServiceItem(index, "price", formatted)
+    }
+  }
+
   function removeServiceItem(index: number) {
     setContent((prev) => ({
       ...prev,
-      services_or_menu: prev.services_or_menu.filter((_, i) => i !== index),
+      services_or_menu: (prev.services_or_menu || []).filter((_, i) => i !== index),
     }))
   }
 
+  const expirationText = extendedSuccess
+    ? "Prolongée de 14 jours"
+    : formatExpirationDate(demo.expires_at)
+
   return (
-    <div className="space-y-6">
-      {/* BANNIÈRE HAUTE : LIEN UNIQUE & ACTIONS CLÉS */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 pb-12 animate-fade-in">
+      {/* BANNIÈRE HAUTE : LIEN UNIQUE, ÉTAT AUTO-SAVE & ACTIONS */}
+      <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <h1 className="font-extrabold text-xl sm:text-2xl text-white">
-              Démo de {content.business_name}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <h1 className="font-bold text-lg sm:text-xl text-[#EDEDEF]">
+              Démo de {normalizeBusinessName(content.business_name)}
             </h1>
           </div>
-          <p className="text-xs text-neutral-400 flex items-center gap-2">
-            <span>Code unique : <strong className="text-white">{demo.slug}</strong></span>
+          <p className="text-xs text-[#A0A0A8] flex items-center gap-2 flex-wrap">
+            <span>Code : <strong className="text-[#EDEDEF] tabular-nums">{demo.slug}</strong></span>
             <span>•</span>
-            <span className="text-amber-400 font-semibold">
-              {extendedSuccess ? "Prolongée de 14 jours !" : "Active pendant 14 jours"}
-            </span>
+            <span className="text-[#EDEDEF]">{expirationText}</span>
+            <span>•</span>
+            {saveStatus === "saving" && (
+              <span className="text-[#A0A0A8] flex items-center gap-1.5">
+                <Loader2 className="w-3 h-3 animate-spin text-[#6C5CE7]" />
+                <span>Enregistrement…</span>
+              </span>
+            )}
+            {saveStatus === "saved" && (
+              <span className="text-emerald-400 flex items-center gap-1">
+                <Check className="w-3.5 h-3.5" />
+                <span>Enregistré</span>
+              </span>
+            )}
+            {saveStatus === "error" && (
+              <span className="text-red-400">Erreur de sauvegarde</span>
+            )}
+            {saveStatus === "idle" && (
+              <span className="text-[#6E6E76]">Enregistré</span>
+            )}
           </p>
         </div>
 
         {/* Boutons d'action rapides */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleCopyLink}
-            className="h-11 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-white font-bold text-xs flex items-center gap-2 border border-neutral-700 transition-colors"
+            className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium flex items-center gap-1.5 border border-[#2A2A2F] transition-colors"
           >
             {copiedLink ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
-                <span className="text-emerald-400">Lien copié !</span>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">Lien copié</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-neutral-400" />
+                <Copy className="w-3.5 h-3.5 text-[#6E6E76]" />
                 <span>Copier le lien démo</span>
               </>
             )}
           </button>
 
           <a
-            href={`/demo/${demo.slug}`}
+            href={demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-11 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-white font-bold text-xs flex items-center gap-2 border border-neutral-700 transition-colors"
+            className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium flex items-center gap-1.5 border border-[#2A2A2F] transition-colors"
           >
-            <span>Voir en plein écran</span>
-            <ExternalLink className="w-4 h-4 text-neutral-400" />
+            <span>Voir plein écran</span>
+            <ExternalLink className="w-3.5 h-3.5 text-[#6E6E76]" />
           </a>
 
           <Link
             href={`/prospecter?demo_id=${demo.id}`}
-            className="h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
+            className="h-8 px-3.5 rounded-[6px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
           >
-            <MessageSquare className="w-4 h-4" />
-            <span>Messages de prospection →</span>
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Messages de prospection</span>
           </Link>
         </div>
       </div>
 
-      {/* COMMUTATEUR SUR MOBILE (Éditer vs Voir l'aperçu) */}
-      <div className="flex lg:hidden items-center bg-neutral-900 p-1.5 rounded-2xl border border-neutral-800">
+      {/* COMMUTATEUR SUR MOBILE (Formulaire vs Aperçu) */}
+      <div className="flex lg:hidden items-center bg-[#17171A] p-1 rounded-[8px] border border-[#2A2A2F]">
         <button
           type="button"
           onClick={() => setMobileView("editor")}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-1.5 rounded-[6px] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors ${
             mobileView === "editor"
-              ? "bg-indigo-600 text-white shadow-md"
-              : "text-neutral-400"
+              ? "bg-[#1E1E22] text-[#EDEDEF] border border-[#2A2A2F]"
+              : "text-[#A0A0A8]"
           }`}
         >
-          <Edit3 className="w-4 h-4" />
+          <Edit3 className="w-3.5 h-3.5" />
           <span>Formulaire</span>
         </button>
         <button
           type="button"
           onClick={() => setMobileView("preview")}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-1.5 rounded-[6px] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors ${
             mobileView === "preview"
-              ? "bg-indigo-600 text-white shadow-md"
-              : "text-neutral-400"
+              ? "bg-[#1E1E22] text-[#EDEDEF] border border-[#2A2A2F]"
+              : "text-[#A0A0A8]"
           }`}
         >
-          <Smartphone className="w-4 h-4" />
-          <span>Aperçu en direct</span>
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>Voir l&apos;aperçu</span>
         </button>
       </div>
 
-      {/* ZONE PRINCIPALE : FORMULAIRE SIMPLE ET PRÉVISUALISATION DIRECTE */}
+      {/* ZONE PRINCIPALE : FORMULAIRE ET APERÇU */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* COLONNE GAUCHE : LE FORMULAIRE DE PERSONNALISATION ÉPURÉ */}
+        {/* COLONNE GAUCHE : FORMULAIRE */}
         <div
-          className={`lg:col-span-7 bg-neutral-900/90 border border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xl space-y-6 ${
+          className={`lg:col-span-7 bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-4 sm:p-6 space-y-5 ${
             mobileView === "preview" ? "hidden lg:block" : "block"
           }`}
         >
-          {/* SÉLECTEUR D'ONGLETS */}
-          <div className="flex items-center gap-2 border-b border-neutral-800 pb-3">
+          {/* ONGLETS */}
+          <div className="flex items-center gap-1.5 border-b border-[#2A2A2F] pb-3 text-xs">
             <button
               type="button"
               onClick={() => setActiveTab("text")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${
+              className={`h-8 px-3 rounded-[6px] font-medium flex items-center gap-1.5 transition-colors ${
                 activeTab === "text"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-neutral-800/80 text-neutral-400 hover:text-white"
+                  ? "bg-[#1E1E22] text-[#EDEDEF] border border-[#2A2A2F]"
+                  : "text-[#A0A0A8] hover:text-[#EDEDEF]"
               }`}
             >
-              <Type className="w-4 h-4" />
-              <span>1. Textes & Offres</span>
+              <Type className="w-3.5 h-3.5" />
+              <span>Textes</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("colors")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${
+              className={`h-8 px-3 rounded-[6px] font-medium flex items-center gap-1.5 transition-colors ${
                 activeTab === "colors"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-neutral-800/80 text-neutral-400 hover:text-white"
+                  ? "bg-[#1E1E22] text-[#EDEDEF] border border-[#2A2A2F]"
+                  : "text-[#A0A0A8] hover:text-[#EDEDEF]"
               }`}
             >
-              <Palette className="w-4 h-4" />
-              <span>2. Couleurs</span>
+              <Palette className="w-3.5 h-3.5" />
+              <span>Couleurs</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("photos")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${
+              className={`h-8 px-3 rounded-[6px] font-medium flex items-center gap-1.5 transition-colors ${
                 activeTab === "photos"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-neutral-800/80 text-neutral-400 hover:text-white"
+                  ? "bg-[#1E1E22] text-[#EDEDEF] border border-[#2A2A2F]"
+                  : "text-[#A0A0A8] hover:text-[#EDEDEF]"
               }`}
             >
-              <ImageIcon className="w-4 h-4" />
-              <span>3. Photos</span>
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Photos</span>
             </button>
           </div>
 
@@ -318,7 +358,7 @@ export default function DemoEditor({
           {activeTab === "text" && (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[13px] font-medium text-[#A0A0A8] mb-1">
                   Nom de l&apos;établissement
                 </label>
                 <input
@@ -327,149 +367,163 @@ export default function DemoEditor({
                   onChange={(e) =>
                     setContent({ ...content, business_name: e.target.value })
                   }
-                  className="w-full h-11 px-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500"
+                  placeholder="Ex : Bistrot du Port"
+                  className="w-full h-9 px-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs sm:text-sm text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                  Sous-titre (en-tête du site)
+                <label className="block text-[13px] font-medium text-[#A0A0A8] mb-1">
+                  Sous-titre
                 </label>
                 <input
                   type="text"
-                  placeholder={defaultCategorySubtitle}
-                  value={content.subtitle ?? defaultCategorySubtitle}
+                  placeholder={`Ex : ${defaultCategorySubtitle}`}
+                  value={content.subtitle ?? ""}
                   onChange={(e) =>
                     setContent({ ...content, subtitle: e.target.value })
                   }
-                  className="w-full h-11 px-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500"
+                  className="w-full h-9 px-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs sm:text-sm text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                  Slogan d&apos;accroche
+                <label className="block text-[13px] font-medium text-[#A0A0A8] mb-1">
+                  Accroche
                 </label>
                 <input
                   type="text"
-                  value={content.tagline}
+                  value={content.tagline ?? ""}
                   onChange={(e) =>
                     setContent({ ...content, tagline: e.target.value })
                   }
-                  className="w-full h-11 px-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500"
+                  placeholder="Ex : Cuisine de saison, accueil chaleureux en plein cœur du quartier"
+                  className="w-full h-9 px-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs sm:text-sm text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                  Présentation du commerce
+                <label className="block text-[13px] font-medium text-[#A0A0A8] mb-1">
+                  Présentation
                 </label>
                 <textarea
                   rows={3}
-                  value={content.about}
+                  value={content.about ?? ""}
                   onChange={(e) =>
                     setContent({ ...content, about: e.target.value })
                   }
-                  className="w-full p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500 resize-none leading-relaxed"
+                  placeholder="Ex : Situé en plein centre-ville, nous vous accueillons du mardi au samedi dans un cadre sobre et convivial."
+                  className="w-full p-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs sm:text-sm text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7] resize-none leading-relaxed"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[13px] font-medium text-[#A0A0A8] mb-1">
                     Téléphone
                   </label>
                   <input
                     type="text"
-                    value={content.phone}
+                    value={content.phone ?? ""}
                     onChange={(e) =>
                       setContent({ ...content, phone: e.target.value })
                     }
-                    className="w-full h-11 px-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500"
+                    placeholder="Ex : 04 78 00 00 00"
+                    className="w-full h-9 px-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs sm:text-sm text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                    Adresse
+                  <label className="block text-[13px] font-medium text-[#A0A0A8] mb-1">
+                    Adresse complète (rue, code postal, ville)
                   </label>
                   <input
                     type="text"
-                    value={content.address}
+                    value={content.address ?? ""}
                     onChange={(e) =>
                       setContent({ ...content, address: e.target.value })
                     }
-                    className="w-full h-11 px-4 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm outline-none focus:border-indigo-500"
+                    placeholder="Ex : 12 rue de la République, 69002 Lyon"
+                    className="w-full h-9 px-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs sm:text-sm text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                   />
                 </div>
               </div>
 
-              {/* LISTE DES PRESTATIONS OU PLATS */}
-              <div className="pt-4 border-t border-neutral-800">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
-                    {demo.template_type === "restaurant"
-                      ? "Carte du restaurant"
-                      : "Prestations & Tarifs"}
-                  </label>
+              {/* LISTE DES PRESTATIONS OU PLATS (VIDE PAR DÉFAUT, MASQUÉE DANS LA DÉMO SI VIDE) */}
+              <div className="pt-3 border-t border-[#2A2A2F]">
+                <div className="flex items-center justify-between mb-2.5">
+                  <div>
+                    <label className="block text-[13px] font-medium text-[#EDEDEF]">
+                      {demo.template_type === "restaurant"
+                        ? "Plats & Tarifs"
+                        : "Prestations & Tarifs"}
+                    </label>
+                    <p className="text-[11px] text-[#6E6E76]">
+                      Section masquée automatiquement dans la démo si aucun élément n&apos;est renseigné.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={addServiceItem}
-                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                    className="text-xs text-[#6C5CE7] hover:underline flex items-center gap-1 font-medium"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Ajouter</span>
                   </button>
                 </div>
 
-                <div className="space-y-3">
-                  {content.services_or_menu?.map((item, idx) => (
+                <div className="space-y-2.5">
+                  {(content.services_or_menu || []).map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800 flex items-start gap-3"
+                      className="p-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] space-y-2"
                     >
-                      <div className="flex-1 space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Nom"
-                            value={item.name}
-                            onChange={(e) =>
-                              updateServiceItem(idx, "name", e.target.value)
-                            }
-                            className="flex-1 h-9 px-3 rounded-lg bg-neutral-900 border border-neutral-750 text-white text-xs outline-none focus:border-indigo-500"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Prix"
-                            value={item.price}
-                            onChange={(e) =>
-                              updateServiceItem(idx, "price", e.target.value)
-                            }
-                            className="w-24 h-9 px-3 rounded-lg bg-neutral-900 border border-neutral-750 text-white text-xs outline-none focus:border-indigo-500 font-bold"
-                          />
-                        </div>
+                      <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Description succincte"
-                          value={item.desc}
+                          placeholder="Nom (ex : Plat du jour)"
+                          value={item.name}
                           onChange={(e) =>
-                            updateServiceItem(idx, "desc", e.target.value)
+                            updateServiceItem(idx, "name", e.target.value)
                           }
-                          className="w-full h-8 px-3 rounded-lg bg-neutral-900 border border-neutral-750 text-neutral-300 text-xs outline-none focus:border-indigo-500"
+                          className="flex-1 h-8 px-2.5 rounded-[6px] bg-[#17171A] border border-[#2A2A2F] text-xs text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                         />
+                        <input
+                          type="text"
+                          placeholder="Prix (ex : 8,50 €)"
+                          value={item.price}
+                          onChange={(e) =>
+                            updateServiceItem(idx, "price", e.target.value)
+                          }
+                          onBlur={(e) => handlePriceBlur(idx, e.target.value)}
+                          className="w-28 h-8 px-2.5 rounded-[6px] bg-[#17171A] border border-[#2A2A2F] text-xs text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7] font-medium tabular-nums"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeServiceItem(idx)}
+                          className="p-1.5 text-[#6E6E76] hover:text-red-400 transition-colors"
+                          title="Supprimer cet élément"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => removeServiceItem(idx)}
-                        className="p-2 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-neutral-850"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <input
+                        type="text"
+                        placeholder="Description succinte (optionnel)"
+                        value={item.desc}
+                        onChange={(e) =>
+                          updateServiceItem(idx, "desc", e.target.value)
+                        }
+                        className="w-full h-8 px-2.5 rounded-[6px] bg-[#17171A] border border-[#2A2A2F] text-xs text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
+                      />
                     </div>
                   ))}
+
+                  {(!content.services_or_menu || content.services_or_menu.length === 0) && (
+                    <div className="py-4 text-center text-xs text-[#6E6E76] border border-dashed border-[#2A2A2F] rounded-[8px]">
+                      Aucun plat ou prestation renseigné. La section sera invisible dans la démo.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -477,12 +531,12 @@ export default function DemoEditor({
 
           {/* ONGLET 2 : COULEURS */}
           {activeTab === "colors" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[13px] font-medium text-[#A0A0A8] mb-2">
                   Couleur d&apos;accentuation principale
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {COLOR_PRESETS.map((preset) => {
                     const isSelected =
                       content.primary_color?.toLowerCase() === preset.hex.toLowerCase()
@@ -493,49 +547,38 @@ export default function DemoEditor({
                         onClick={() =>
                           setContent({ ...content, primary_color: preset.hex })
                         }
-                        style={{
-                          borderColor: isSelected ? preset.hex : undefined,
-                          backgroundColor: isSelected ? `${preset.hex}18` : undefined,
-                        }}
-                        className={`p-3 rounded-2xl border-2 flex items-center gap-2.5 transition-all text-left ${
+                        className={`p-2.5 rounded-[8px] border flex items-center gap-2.5 transition-colors text-left ${
                           isSelected
-                            ? "shadow-md"
-                            : "border-neutral-800 hover:border-neutral-700 bg-neutral-950"
+                            ? "bg-[#1E1E22] border-[#EDEDEF]"
+                            : "bg-[#1E1E22] border-[#2A2A2F] hover:border-[#3A3A42]"
                         }`}
                       >
                         <span
                           style={{ backgroundColor: preset.hex }}
-                          className="w-6 h-6 rounded-full shadow-inner border border-white/20 shrink-0"
+                          className="w-5 h-5 rounded-full shrink-0"
                         />
-                        <span className="text-xs font-semibold text-white truncate flex-1">
+                        <span className="text-xs font-medium text-[#EDEDEF] truncate flex-1">
                           {preset.name}
                         </span>
-                        {isSelected && (
-                          <span
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-white shrink-0 shadow-xs"
-                            style={{ backgroundColor: preset.hex }}
-                          >
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </span>
-                        )}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#EDEDEF]" />}
                       </button>
                     )
                   })}
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800">
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                  Code couleur sur-mesure (HEX)
+              <div className="p-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F]">
+                <label className="block text-[11px] font-medium text-[#6E6E76] mb-1.5">
+                  Code couleur hexadécimal libre
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <input
                     type="color"
                     value={content.primary_color || "#c2410c"}
                     onChange={(e) =>
                       setContent({ ...content, primary_color: e.target.value })
                     }
-                    className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0"
+                    className="w-8 h-8 rounded-[6px] cursor-pointer bg-transparent border-0"
                   />
                   <input
                     type="text"
@@ -543,7 +586,7 @@ export default function DemoEditor({
                     onChange={(e) =>
                       setContent({ ...content, primary_color: e.target.value })
                     }
-                    className="w-36 h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-750 text-white font-mono text-xs uppercase"
+                    className="w-28 h-8 px-2.5 rounded-[6px] bg-[#17171A] border border-[#2A2A2F] text-xs font-mono text-[#EDEDEF] uppercase outline-none focus:border-[#6C5CE7]"
                   />
                 </div>
               </div>
@@ -552,40 +595,58 @@ export default function DemoEditor({
 
           {/* ONGLET 3 : PHOTOS */}
           {activeTab === "photos" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
-                  Photo principale (Hero)
+                <label className="block text-[13px] font-medium text-[#A0A0A8] mb-2">
+                  Photo principale (en-tête)
                 </label>
-                <div className="relative rounded-2xl overflow-hidden aspect-video border border-neutral-800 mb-3 bg-neutral-950">
-                  <img
-                    src={content.hero_image_url}
-                    alt="Hero"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative rounded-[8px] overflow-hidden aspect-video border border-[#2A2A2F] mb-2 bg-[#1E1E22]">
+                  {content.hero_image_url ? (
+                    <img
+                      src={content.hero_image_url}
+                      alt="En-tête de la démo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-[#6E6E76]">
+                      Visuel de remplacement standard actif
+                    </div>
+                  )}
                 </div>
 
-                <label className="h-10 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer transition-colors">
-                  <ImageIcon className="w-4 h-4 text-neutral-400" />
-                  <span>{uploading ? "Téléversement..." : "Remplacer la photo"}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={uploading}
-                    onChange={(e) => handleFileUpload(e, "hero")}
-                    className="hidden"
-                  />
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer border border-[#2A2A2F] transition-colors">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#6E6E76]" />
+                    <span>{uploading ? "Téléversement…" : "Remplacer la photo"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploading}
+                      onChange={(e) => handleFileUpload(e, "hero")}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {content.hero_image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setContent((prev) => ({ ...prev, hero_image_url: "" }))}
+                      className="h-8 px-3 rounded-[6px] bg-transparent text-xs text-[#6E6E76] hover:text-red-400 transition-colors"
+                    >
+                      Utiliser le visuel sobre par défaut
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="pt-4 border-t border-neutral-800">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
-                    Galerie photos
+              <div className="pt-3 border-t border-[#2A2A2F]">
+                <div className="flex items-center justify-between mb-2.5">
+                  <label className="block text-[13px] font-medium text-[#A0A0A8]">
+                    Galerie photos (optionnel)
                   </label>
-                  <label className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer">
+                  <label className="text-xs text-[#6C5CE7] hover:underline flex items-center gap-1 font-medium cursor-pointer">
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Ajouter</span>
+                    <span>Ajouter photo</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -596,11 +657,11 @@ export default function DemoEditor({
                   </label>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  {content.gallery_images?.map((img, idx) => (
+                <div className="grid grid-cols-3 gap-2.5">
+                  {(content.gallery_images || []).map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative rounded-xl overflow-hidden aspect-square border border-neutral-800 group"
+                      className="relative rounded-[6px] overflow-hidden aspect-square border border-[#2A2A2F] group"
                     >
                       <img
                         src={img}
@@ -612,96 +673,69 @@ export default function DemoEditor({
                         onClick={() =>
                           setContent((prev) => ({
                             ...prev,
-                            gallery_images: prev.gallery_images.filter(
-                              (_, i) => i !== idx
-                            ),
+                            gallery_images: prev.gallery_images.filter((_, i) => i !== idx),
                           }))
                         }
-                        className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-rose-600/90 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 p-1 rounded-[4px] bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Supprimer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3 text-red-400" />
                       </button>
                     </div>
                   ))}
                 </div>
 
                 {(!content.gallery_images || content.gallery_images.length === 0) && (
-                  <div className="p-6 rounded-2xl border-2 border-dashed border-neutral-800/80 flex flex-col items-center justify-center text-center bg-neutral-950/40">
-                    <ImageIcon className="w-8 h-8 text-neutral-600 mb-2" />
-                    <p className="text-xs font-bold text-neutral-300">
-                      Aucune photo dans la galerie
-                    </p>
-                    <p className="text-[11px] text-neutral-500 mt-1 max-w-xs">
-                      La section galerie est automatiquement masquée dans l&apos;aperçu pour un rendu toujours impeccable.
-                    </p>
-                  </div>
+                  <p className="text-[11px] text-[#6E6E76] mt-1">
+                    Sans photo de galerie, la section est masquée pour préserver un rendu impeccable.
+                  </p>
                 )}
               </div>
             </div>
           )}
 
-          {/* BARRE DE SAUVEGARDE EN BAS */}
-          <div className="pt-5 border-t border-neutral-800 flex items-center justify-between">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={handleSave}
-              className="h-12 px-7 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-              ) : savedSuccess ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-300" />
-                  <span>Enregistré !</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span>Enregistrer les modifications</span>
-                </>
-              )}
-            </button>
-
+          {/* PIED DU FORMULAIRE : PROLONGATION */}
+          <div className="pt-4 border-t border-[#2A2A2F] flex items-center justify-between text-xs text-[#6E6E76]">
+            <span>
+              Toutes les modifications sont enregistrées en temps réel.
+            </span>
             <button
               type="button"
               disabled={extending}
               onClick={handleExtend}
-              className="text-xs font-semibold text-neutral-400 hover:text-amber-400 transition-colors flex items-center gap-1.5"
+              className="text-[#A0A0A8] hover:text-[#EDEDEF] transition-colors flex items-center gap-1.5"
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>{extending ? "Prolongation..." : "+ Prolonger de 14 jours"}</span>
+              <span>{extending ? "Prolongation…" : "Prolonger de 14 jours"}</span>
             </button>
           </div>
         </div>
 
-        {/* COLONNE DROITE : APERÇU MOBILE EN DIRECT ET EN TEMPS RÉEL (0 DÉLAI) */}
+        {/* COLONNE DROITE : APERÇU DIRECT DANS UN SMARTPHONE SOBRE */}
         <div
-          className={`lg:col-span-5 sticky top-24 ${
+          className={`lg:col-span-5 sticky top-20 ${
             mobileView === "editor" ? "hidden lg:block" : "block"
           }`}
         >
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-4 shadow-2xl">
-            <div className="flex items-center justify-between mb-3 px-2">
-              <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4 text-emerald-400" />
-                <span className="text-white">Aperçu en temps réel</span>
+          <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-3 px-1 text-xs">
+              <span className="font-medium text-[#EDEDEF]">
+                Aperçu mobile en direct
               </span>
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
-                En direct
-              </span>
+              <a
+                href={demoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#6C5CE7] hover:underline flex items-center gap-1"
+              >
+                <span>Ouvrir</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
 
-            {/* Simulateur écran mobile réactif */}
-            <div className="relative mx-auto w-full max-w-[360px] h-[640px] rounded-[38px] overflow-hidden border-[7px] border-neutral-800 shadow-2xl bg-neutral-950 flex flex-col">
-              {/* Encoche haut smartphone */}
-              <div className="h-5 bg-neutral-950 w-full flex items-center justify-center shrink-0 z-30">
-                <div className="w-20 h-3.5 bg-neutral-800 rounded-b-xl" />
-              </div>
-
-              {/* Rendu dynamique du template sélectionné en live avec l'état local */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none relative">
+            {/* Cadre smartphone sans mockup extravagant */}
+            <div className="relative mx-auto w-full max-w-[340px] h-[580px] rounded-[24px] overflow-hidden border border-[#2A2A2F] bg-[#0F0F11] flex flex-col shadow-lg">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
                 {demo.template_type === "restaurant" && (
                   <RestaurantTemplate content={content} isPreview={true} />
                 )}

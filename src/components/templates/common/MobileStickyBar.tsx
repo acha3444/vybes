@@ -78,7 +78,7 @@ export default function MobileStickyBar({
         <a
           href={telHref}
           style={{ backgroundColor: primaryColor, color: textColor }}
-          className="flex-1 h-11 sm:h-12 px-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition truncate"
+          className="flex-1 h-11 sm:h-12 px-3 rounded-[8px] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition truncate"
         >
           <CtaIcon className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">{ctaLabel}</span>

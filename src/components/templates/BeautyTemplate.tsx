@@ -143,11 +143,11 @@ export default function BeautyTemplate({
                     <a
                       href={isPreview ? "#" : formatTelHref(content.phone)}
                       style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                      className={`h-11 sm:h-13 px-5 sm:px-7 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-rose-950/20 active:scale-95 transition cursor-pointer ${
+                      className={`h-11 sm:h-12 px-5 sm:px-6 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
                       }`}
                     >
-                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <Clock className="w-4 h-4 shrink-0" />
                       <span>Prendre rendez-vous</span>
                     </a>
                   )}
@@ -155,11 +155,11 @@ export default function BeautyTemplate({
                   {content.services_or_menu && content.services_or_menu.length > 0 && (
                     <a
                       href="#prestations"
-                      className={`h-11 sm:h-13 px-5 sm:px-6 rounded-xl sm:rounded-2xl bg-white/90 hover:bg-white text-stone-900 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer shadow-md ${
+                      className={`h-11 sm:h-12 px-5 sm:px-6 rounded-xl bg-white/90 hover:bg-white text-stone-900 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer border border-stone-200/50 ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
                       }`}
                     >
-                      <span>Découvrir nos soins</span>
+                      <span>Consulter les soins</span>
                     </a>
                   )}
                 </div>
@@ -168,13 +168,13 @@ export default function BeautyTemplate({
           </div>
         </section>
 
-        {/* 3. SECTION À PROPOS / BIEN-ÊTRE */}
+        {/* 3. SECTION À PROPOS */}
         {content.about && (
           <TemplateSection
             id="apropos"
-            badge="Philosophie"
-            title="Un havre de calme et de beauté sur-mesure"
-            subtitle="Chaque protocole est pensé comme un moment suspendu où douceur, gestuelle experte et produits d'exception se rencontrent."
+            badge="Présentation"
+            title="L'institut"
+            subtitle=""
             primaryColor={primaryColor}
             headingFontClass={beautyHeading.className}
             isPreview={isPreview}
@@ -192,30 +192,12 @@ export default function BeautyTemplate({
                 <p className="text-stone-900 text-sm sm:text-lg font-normal leading-relaxed">
                   {content.about}
                 </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-stone-200">
-                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 shadow-xs">
-                    <Feather className="w-4 h-4 text-rose-500 mb-1.5" />
-                    <h4 className="font-bold text-xs text-stone-900">Toucher expert</h4>
-                    <p className="text-[10px] text-stone-500 mt-0.5">Gestuelle apaisante</p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 shadow-xs">
-                    <Flower2 className="w-4 h-4 text-rose-500 mb-1.5" />
-                    <h4 className="font-bold text-xs text-stone-900">Actifs purs</h4>
-                    <p className="text-[10px] text-stone-500 mt-0.5">Cosmétiques ciblés</p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 shadow-xs">
-                    <ShieldCheck className="w-4 h-4 text-rose-500 mb-1.5" />
-                    <h4 className="font-bold text-xs text-stone-900">Diagnostic peau</h4>
-                    <p className="text-[10px] text-stone-500 mt-0.5">Conseils sur-mesure</p>
-                  </div>
-                </div>
               </div>
 
               <div className={isPreview ? "w-full" : "lg:col-span-5"}>
                 <ImageWithFallback
                   src={validGallery[0] || content.hero_image_url}
-                  alt={`Cabine de soin et espace détente - ${content.business_name}`}
+                  alt={`Espace détente - ${content.business_name}`}
                   aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
                   className="rounded-2xl sm:rounded-3xl border border-stone-200 shadow-xl"
                   primaryColor={primaryColor}
@@ -227,13 +209,13 @@ export default function BeautyTemplate({
           </TemplateSection>
         )}
 
-        {/* 4. SECTION PRESTATIONS AVEC CATÉGORIES & DURÉES */}
+        {/* 4. SECTION PRESTATIONS (Masquée si vide) */}
         {content.services_or_menu && content.services_or_menu.length > 0 && (
           <TemplateSection
             id="prestations"
-            badge="Carte des soins"
-            title="Nos rituels & prestations"
-            subtitle="Prenez le temps d'un soin visage personnalisé, d'un massage délassant ou d'une mise en beauté complète."
+            badge="Tarifs"
+            title="Nos soins et prestations"
+            subtitle=""
             primaryColor={primaryColor}
             headingFontClass={beautyHeading.className}
             className="bg-white/80 border-y border-stone-200/80"
@@ -246,24 +228,6 @@ export default function BeautyTemplate({
               headingFontClass={beautyHeading.className}
               isPreview={isPreview}
             />
-
-            <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl bg-[#faf8f5] border border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>
-                  Bons cadeaux disponibles pour tous nos soins et forfaits sur demande.
-                </span>
-              </div>
-              {content.phone && (
-                <a
-                  href={isPreview ? "#" : formatTelHref(content.phone)}
-                  style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                  className="h-10 px-5 rounded-xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition"
-                >
-                  Prendre RDV au {content.phone}
-                </a>
-              )}
-            </div>
           </TemplateSection>
         )}
 
@@ -363,12 +327,12 @@ export default function BeautyTemplate({
 
               {content.phone && (
                 <div className="pt-3 border-t border-stone-200">
-                  <span className="text-[11px] text-stone-500 uppercase tracking-wider font-semibold block">
+                  <span className="text-xs text-stone-500 font-medium block">
                     Prise de rendez-vous
                   </span>
                   <a
                     href={isPreview ? "#" : formatTelHref(content.phone)}
-                    className="text-base sm:text-lg font-black mt-0.5 block tracking-tight hover:underline"
+                    className="text-base sm:text-lg font-bold mt-0.5 block tracking-tight hover:underline"
                     style={{ color: primaryColor }}
                   >
                     {content.phone}
@@ -380,10 +344,10 @@ export default function BeautyTemplate({
                 href={isPreview ? "#" : mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full h-11 sm:h-12 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
+                className="w-full h-11 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <MapPin className="w-3.5 h-3.5 text-rose-400" />
-                <span>Itinéraire Google Maps</span>
+                <span>Ouvrir dans Google Maps</span>
               </a>
             </div>
           </div>

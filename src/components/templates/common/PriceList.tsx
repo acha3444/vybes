@@ -121,7 +121,7 @@ export default function PriceList({
 
                 {item.badge && (
                   <span
-                    className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0"
+                    className="px-2 py-0.5 rounded text-[11px] font-medium shrink-0"
                     style={{
                       backgroundColor: `${primaryColor}20`,
                       color: primaryColor,

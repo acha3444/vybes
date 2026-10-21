@@ -54,7 +54,7 @@ export default function TemplateSection({
             <div>
               {badge && (
                 <div
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-3 border shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 border"
                   style={{
                     backgroundColor: `${primaryColor}15`,
                     borderColor: `${primaryColor}30`,

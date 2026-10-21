@@ -66,7 +66,7 @@ export default function TemplateFooter({
           <div className="md:col-span-6 flex flex-col sm:flex-row sm:items-start sm:justify-end gap-6 text-xs">
             {address && (
               <div className="space-y-1">
-                <span className="font-bold text-neutral-300 uppercase tracking-wider text-[10px] block">
+                <span className="font-medium text-neutral-400 text-xs block">
                   Adresse
                 </span>
                 <p className="flex items-center gap-1.5 max-w-xs">
@@ -78,7 +78,7 @@ export default function TemplateFooter({
 
             {phone && (
               <div className="space-y-1">
-                <span className="font-bold text-neutral-300 uppercase tracking-wider text-[10px] block">
+                <span className="font-medium text-neutral-400 text-xs block">
                   Téléphone
                 </span>
                 <a
@@ -94,7 +94,7 @@ export default function TemplateFooter({
 
             {instagramHandle && (
               <div className="space-y-1">
-                <span className="font-bold text-neutral-300 uppercase tracking-wider text-[10px] block">
+                <span className="font-medium text-neutral-400 text-xs block">
                   Réseaux
                 </span>
                 <a

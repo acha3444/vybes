@@ -12,7 +12,7 @@ import ReviewsCard from "./common/ReviewsCard"
 import TemplateFooter from "./common/TemplateFooter"
 import MobileStickyBar from "./common/MobileStickyBar"
 import { formatTelHref } from "@/lib/templates/phoneUtils"
-import { Utensils, Star, Clock, MapPin, ChefHat, Sparkles, Flame, Wine } from "lucide-react"
+import { Utensils, Star, MapPin, ChefHat } from "lucide-react"
 
 export default function RestaurantTemplate({
   content,
@@ -28,12 +28,11 @@ export default function RestaurantTemplate({
   const validGallery = (content.gallery_images || []).filter(
     (img) => typeof img === "string" && img.trim().length > 0
   )
+  const hasMenu = Boolean(content.services_or_menu && content.services_or_menu.length > 0)
 
   const navLinks = [
     { label: "À propos", href: "#apropos" },
-    ...(content.services_or_menu && content.services_or_menu.length > 0
-      ? [{ label: "La Carte", href: "#carte" }]
-      : []),
+    ...(hasMenu ? [{ label: "La Carte", href: "#carte" }] : []),
     ...(validGallery.length > 0 ? [{ label: "Galerie", href: "#galerie" }] : []),
     ...(hasRealRating ? [{ label: "Avis", href: "#avis" }] : []),
     { label: "Horaires & Accès", href: "#horaires" },
@@ -50,19 +49,19 @@ export default function RestaurantTemplate({
       {/* 1. HEADER & NAVBAR */}
       <TemplateNavbar
         businessName={content.business_name}
-        tagline={content.subtitle || "Restaurant & Cuisine de saison"}
+        tagline={content.subtitle || "Restaurant"}
         phone={content.phone}
         primaryColor={primaryColor}
         icon={Utensils}
         links={navLinks}
-        ctaLabel="Réserver"
+        ctaLabel={content.phone ? "Appeler" : "Contact"}
         themeMode="dark"
         headingFontClass={restaurantHeading.className}
         isPreview={isPreview}
       />
 
       <main>
-        {/* 2. HERO SECTION GASTRONOMIQUE */}
+        {/* 2. HERO SECTION */}
         <section
           className={`relative overflow-hidden ${
             isPreview ? "pt-3 pb-5" : "pt-8 pb-16 sm:pt-14 sm:pb-24 border-b border-stone-900"
@@ -74,13 +73,13 @@ export default function RestaurantTemplate({
             }`}
           >
             <div
-              className={`relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-800 shadow-2xl ${
+              className={`relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-end border border-stone-800 shadow-xl ${
                 isPreview
                   ? "min-h-[360px] p-4"
-                  : "min-h-[460px] sm:min-h-[560px] p-5 sm:p-10 lg:p-14"
+                  : "min-h-[440px] sm:min-h-[520px] p-5 sm:p-10 lg:p-12"
               }`}
             >
-              {/* Image de fond avec overlay sombre pour lisibilité 100% */}
+              {/* Image de fond avec overlay sombre */}
               <ImageWithFallback
                 src={content.hero_image_url}
                 alt={content.business_name}
@@ -91,37 +90,28 @@ export default function RestaurantTemplate({
                 priority
                 sizes="100vw"
                 overlay
-                overlayClassName="bg-gradient-to-t from-stone-950 via-stone-950/75 to-stone-950/20"
+                overlayClassName="bg-gradient-to-t from-stone-950 via-stone-950/75 to-stone-950/25"
               />
 
               {/* Contenu textuel Hero */}
               <div className="relative z-10 max-w-2xl">
-                {/* Badges d'assurance */}
-                <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
-                  {content.rating ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-amber-400 text-[11px] sm:text-xs font-bold shadow-xs">
-                      <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+                {/* Note réelle Google si disponible (aucun badge inventé) */}
+                {hasRealRating && (
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900/90 border border-stone-700/80 text-amber-400 text-xs font-medium">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                       <span>{Number(content.rating).toFixed(1)} / 5</span>
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-amber-400 text-[11px] sm:text-xs font-bold shadow-xs">
-                      <Utensils className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
-                      <span>Cuisine & Saveurs</span>
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-700/80 text-stone-300 text-[11px] sm:text-xs font-medium shadow-xs">
-                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-stone-400" />
-                    <span>Midi & Soir</span>
-                  </span>
-                </div>
+                  </div>
+                )}
 
-                {/* Titre (Gère les noms très longs sans jamais déborder) */}
+                {/* Titre */}
                 <h1
                   className={`${
                     isPreview
                       ? "text-xl"
                       : "text-2xl sm:text-4xl lg:text-5xl"
-                  } font-black text-white tracking-tight text-balance leading-tight ${restaurantHeading.className}`}
+                  } font-black text-white tracking-tight leading-tight ${restaurantHeading.className}`}
                 >
                   {content.business_name}
                 </h1>
@@ -130,7 +120,7 @@ export default function RestaurantTemplate({
                   <p
                     className={`mt-2 ${
                       isPreview ? "text-xs" : "text-xs sm:text-base"
-                    } text-stone-300 font-normal leading-relaxed text-balance max-w-xl`}
+                    } text-stone-300 font-normal leading-relaxed max-w-xl`}
                   >
                     {content.tagline}
                   </p>
@@ -141,30 +131,30 @@ export default function RestaurantTemplate({
                   className={`flex ${
                     isPreview
                       ? "flex-col w-full items-stretch gap-2 mt-4"
-                      : "flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8"
+                      : "flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mt-5 sm:mt-7"
                   }`}
                 >
                   {content.phone && (
                     <a
                       href={isPreview ? "#" : formatTelHref(content.phone)}
                       style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                      className={`h-11 sm:h-13 px-5 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-orange-950/30 active:scale-95 transition cursor-pointer ${
+                      className={`h-11 px-5 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-95 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
                       }`}
                     >
                       <Utensils className="w-4 h-4 shrink-0" />
-                      <span>Réserver une table</span>
+                      <span>Appeler pour réserver</span>
                     </a>
                   )}
 
-                  {content.services_or_menu && content.services_or_menu.length > 0 && (
+                  {hasMenu && (
                     <a
                       href="#carte"
-                      className={`h-11 sm:h-13 px-5 sm:px-6 rounded-xl sm:rounded-2xl bg-stone-900/90 hover:bg-stone-800 text-stone-200 border border-stone-700/80 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer ${
+                      className={`h-11 px-5 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-stone-200 border border-stone-700/80 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
                       }`}
                     >
-                      <span>Découvrir la carte</span>
+                      <span>Consulter la carte</span>
                     </a>
                   )}
                 </div>
@@ -173,13 +163,12 @@ export default function RestaurantTemplate({
           </div>
         </section>
 
-        {/* 3. SECTION À PROPOS / SAVOIR-FAIRE */}
+        {/* 3. SECTION À PROPOS */}
         {content.about && (
           <TemplateSection
             id="apropos"
-            badge="Notre engagement"
-            title="Une table chaleureuse dédiée aux produits frais"
-            subtitle="Des produits sélectionnés avec soin pour vous offrir une cuisine authentique et généreuse."
+            title="À propos"
+            subtitle="Présentation de l'établissement et informations pratiques."
             primaryColor={primaryColor}
             headingFontClass={restaurantHeading.className}
             isPreview={isPreview}
@@ -192,75 +181,42 @@ export default function RestaurantTemplate({
               <div
                 className={`${
                   isPreview ? "" : "lg:col-span-7"
-                } space-y-5 text-sm sm:text-base text-stone-300 leading-relaxed max-w-prose`}
+                } space-y-4 text-sm sm:text-base text-stone-300 leading-relaxed max-w-prose`}
               >
-                <p className="text-stone-200 text-sm sm:text-lg font-medium leading-relaxed">
+                <p className="text-stone-200 text-sm sm:text-base font-normal leading-relaxed">
                   {content.about}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-stone-900">
-                  <div className="flex items-start gap-2.5">
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
-                    >
-                      <Flame className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xs text-white">Cuisson maîtrisée</h4>
-                      <p className="text-[10px] text-stone-400 mt-0.5">Flamme & braise</p>
-                    </div>
-                  </div>
+                {content.address && (
+                  <p className="text-xs text-stone-400 flex items-center gap-1.5 pt-2">
+                    <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                    <span>{content.address}</span>
+                  </p>
+                )}
+              </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
-                    >
-                      <ChefHat className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xs text-white">Cuisine soignée</h4>
-                      <p className="text-[10px] text-stone-400 mt-0.5">Préparations maison</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
-                    >
-                      <Wine className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xs text-white">Cave choisie</h4>
-                      <p className="text-[10px] text-stone-400 mt-0.5">Vignerons passionnés</p>
-                    </div>
-                  </div>
+              {validGallery.length > 0 && (
+                <div className={isPreview ? "w-full" : "lg:col-span-5"}>
+                  <ImageWithFallback
+                    src={validGallery[0]}
+                    alt={content.business_name}
+                    aspectRatioClass="aspect-[4/3] rounded-2xl"
+                    className="rounded-2xl border border-stone-800"
+                    primaryColor={primaryColor}
+                    fallbackIcon={Utensils}
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
                 </div>
-              </div>
-
-              <div className={isPreview ? "w-full" : "lg:col-span-5"}>
-                <ImageWithFallback
-                  src={validGallery[0] || content.hero_image_url}
-                  alt={`Ambiance chaleureuse et salle de restaurant - ${content.business_name}`}
-                  aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
-                  className="rounded-2xl sm:rounded-3xl border border-stone-800 shadow-2xl"
-                  primaryColor={primaryColor}
-                  fallbackIcon={Utensils}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              </div>
+              )}
             </div>
           </TemplateSection>
         )}
 
-        {/* 4. SECTION LA CARTE & LE MENU (Si items disponibles) */}
-        {content.services_or_menu && content.services_or_menu.length > 0 && (
+        {/* 4. SECTION LA CARTE (Masquée tant que vide) */}
+        {hasMenu && (
           <TemplateSection
             id="carte"
-            badge="Carte de saison"
-            title="Nos suggestions & spécialités du moment"
-            subtitle="Tous nos plats sont cuisinés sur place à la commande à base d'ingrédients bruts rigoureusement sélectionnés."
+            title="La Carte"
+            subtitle="Nos plats et suggestions."
             primaryColor={primaryColor}
             headingFontClass={restaurantHeading.className}
             className="bg-stone-900/40 border-y border-stone-900"
@@ -273,34 +229,15 @@ export default function RestaurantTemplate({
               headingFontClass={restaurantHeading.className}
               isPreview={isPreview}
             />
-
-            <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl bg-stone-900/80 border border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-400 text-center sm:text-left">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>
-                  Allergies ou régimes particuliers ? Notre équipe adapte volontiers ses préparations sur demande.
-                </span>
-              </div>
-              {content.phone && (
-                <a
-                  href={isPreview ? "#" : formatTelHref(content.phone)}
-                  className="font-bold shrink-0 hover:underline"
-                  style={{ color: primaryColor }}
-                >
-                  Nous contacter : {content.phone}
-                </a>
-              )}
-            </div>
           </TemplateSection>
         )}
 
-        {/* 5. SECTION GALERIE DE PHOTOS (Masquée si aucune photo réelle) */}
+        {/* 5. SECTION GALERIE DE PHOTOS (Masquée si aucune photo) */}
         {validGallery.length > 0 && (
           <TemplateSection
             id="galerie"
-            badge="En images"
-            title="L'expérience en salle et dans l'assiette"
-            subtitle="Un aperçu de nos dressages, de nos cuissons et de l'atmosphère qui vous attend."
+            title="Galerie"
+            subtitle="Quelques aperçus de notre établissement."
             primaryColor={primaryColor}
             headingFontClass={restaurantHeading.className}
             isPreview={isPreview}
@@ -311,10 +248,10 @@ export default function RestaurantTemplate({
               }`}
             >
               {validGallery.map((imgUrl, idx) => (
-                <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-stone-800">
+                <div key={idx} className="overflow-hidden rounded-xl border border-stone-800">
                   <ImageWithFallback
                     src={imgUrl}
-                    alt={`Photo des créations culinaires et de l'ambiance - ${content.business_name} (photo ${idx + 1})`}
+                    alt={`Photo - ${content.business_name} (${idx + 1})`}
                     aspectRatioClass="aspect-[4/3]"
                     primaryColor={primaryColor}
                     fallbackIcon={Utensils}
@@ -326,13 +263,12 @@ export default function RestaurantTemplate({
           </TemplateSection>
         )}
 
-        {/* 6. AVIS CLIENTS & RÉPUTATION (Masquée si aucune note réelle) */}
+        {/* 6. AVIS CLIENTS (Masquée si aucune note Google réelle) */}
         {hasRealRating && (
           <TemplateSection
             id="avis"
-            badge="Avis clients"
             title="Avis clients"
-            subtitle="Retours authentiques partagés par nos clients."
+            subtitle="Notes et retours partagés sur Google Maps."
             primaryColor={primaryColor}
             headingFontClass={restaurantHeading.className}
             className="bg-stone-900/30 border-y border-stone-900"
@@ -353,9 +289,8 @@ export default function RestaurantTemplate({
         {/* 7. HORAIRES & ACCÈS */}
         <TemplateSection
           id="horaires"
-          badge="Infos pratiques"
           title="Horaires d'ouverture & Accès"
-          subtitle="Nous vous accueillons midi et soir. Réservation fortement conseillée pour le service du soir."
+          subtitle="Retrouvez nos horaires d'ouverture et nos coordonnées ci-dessous."
           primaryColor={primaryColor}
           headingFontClass={restaurantHeading.className}
           isPreview={isPreview}
@@ -375,27 +310,27 @@ export default function RestaurantTemplate({
 
             <div
               className={`${
-                isPreview ? "w-full p-4 sm:p-6" : "lg:col-span-5 p-6 sm:p-8"
-              } bg-stone-900/90 border border-stone-800 rounded-2xl sm:rounded-3xl space-y-5`}
+                isPreview ? "w-full p-4 sm:p-5" : "lg:col-span-5 p-5 sm:p-7"
+              } bg-stone-900/90 border border-stone-800 rounded-2xl space-y-4`}
             >
               <div>
-                <h3 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-rose-400" />
+                <h3 className="font-semibold text-white text-base flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-stone-400" />
                   <span>Adresse & Coordonnées</span>
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-300 mt-1.5 leading-relaxed">
+                <p className="text-xs sm:text-sm text-stone-300 mt-1 leading-relaxed">
                   {content.address || "Adresse sur demande"}
                 </p>
               </div>
 
               {content.phone && (
                 <div className="pt-3 border-t border-stone-800">
-                  <span className="text-[11px] text-stone-400 uppercase tracking-wider font-semibold block">
+                  <span className="text-[11px] text-stone-400 font-medium block">
                     Réservations par téléphone
                   </span>
                   <a
                     href={isPreview ? "#" : formatTelHref(content.phone)}
-                    className="text-base sm:text-lg font-black mt-0.5 block tracking-tight hover:underline"
+                    className="text-base sm:text-lg font-bold mt-0.5 block hover:underline"
                     style={{ color: primaryColor }}
                   >
                     {content.phone}
@@ -407,9 +342,9 @@ export default function RestaurantTemplate({
                 href={isPreview ? "#" : mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full h-11 sm:h-12 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-100 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-stone-700 transition cursor-pointer"
+                className="w-full h-10 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-100 font-medium text-xs flex items-center justify-center gap-2 border border-stone-700 transition cursor-pointer"
               >
-                <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                <MapPin className="w-3.5 h-3.5 text-stone-400" />
                 <span>Ouvrir sur Google Maps</span>
               </a>
             </div>

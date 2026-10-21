@@ -62,7 +62,7 @@ export default function ImageWithFallback({
           >
             <FallbackIcon className="w-6 h-6" />
           </div>
-          <span className="text-xs font-semibold tracking-wider uppercase text-neutral-400 max-w-[80%] line-clamp-1">
+          <span className="text-xs font-normal text-neutral-400 max-w-[80%] line-clamp-1">
             {alt}
           </span>
         </div>

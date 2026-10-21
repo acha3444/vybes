@@ -93,9 +93,9 @@ export default function TemplateNavbar({
           </div>
         </a>
 
-        {/* LIENS DE NAVIGATION DESKTOP (Uniquement sur vrai écran desktop) */}
+        {/* LIENS DE NAVIGATION DESKTOP */}
         {!isPreview && (
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-medium">
             {links.map((link) => (
               <a
                 key={link.href}
@@ -118,7 +118,7 @@ export default function TemplateNavbar({
             <a
               href={formatTelHref(phone)}
               style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-              className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition"
+              className="hidden sm:inline-flex items-center gap-2 h-9 px-4 rounded-[8px] font-medium text-xs shadow-sm active:scale-95 transition"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>{ctaLabel}</span>
@@ -176,7 +176,7 @@ export default function TemplateNavbar({
                 href={isPreview ? "#" : formatTelHref(phone)}
                 onClick={() => setMobileMenuOpen(false)}
                 style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                className="w-full h-12 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-98 transition"
+                className="w-full h-11 rounded-xl font-medium text-xs flex items-center justify-center gap-2 shadow-xs active:scale-98 transition"
               >
                 <Phone className="w-4 h-4" />
                 <span>{ctaLabel} • {phone}</span>

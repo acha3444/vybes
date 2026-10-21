@@ -12,7 +12,7 @@ import ReviewsCard from "./common/ReviewsCard"
 import TemplateFooter from "./common/TemplateFooter"
 import MobileStickyBar from "./common/MobileStickyBar"
 import { formatTelHref } from "@/lib/templates/phoneUtils"
-import { Scissors, Star, Clock, MapPin, Zap, Shield, Sparkles, UserCheck } from "lucide-react"
+import { Scissors, Star, MapPin } from "lucide-react"
 
 export default function BarberTemplate({
   content,
@@ -28,15 +28,14 @@ export default function BarberTemplate({
   const validGallery = (content.gallery_images || []).filter(
     (img) => typeof img === "string" && img.trim().length > 0
   )
+  const hasServices = Boolean(content.services_or_menu && content.services_or_menu.length > 0)
 
   const navLinks = [
-    { label: "Le Salon", href: "#apropos" },
-    ...(content.services_or_menu && content.services_or_menu.length > 0
-      ? [{ label: "Prestations", href: "#prestations" }]
-      : []),
-    ...(validGallery.length > 0 ? [{ label: "Réalisations", href: "#galerie" }] : []),
+    { label: "À propos", href: "#apropos" },
+    ...(hasServices ? [{ label: "Prestations", href: "#prestations" }] : []),
+    ...(validGallery.length > 0 ? [{ label: "Galerie", href: "#galerie" }] : []),
     ...(hasRealRating ? [{ label: "Avis", href: "#avis" }] : []),
-    { label: "Horaires & Plan", href: "#horaires" },
+    { label: "Horaires & Accès", href: "#horaires" },
   ]
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -45,24 +44,24 @@ export default function BarberTemplate({
 
   return (
     <div
-      className={`min-h-screen bg-neutral-950 text-neutral-100 selection:bg-amber-400 selection:text-neutral-950 ${barberBody.className}`}
+      className={`min-h-screen bg-neutral-950 text-neutral-100 selection:bg-amber-500 selection:text-neutral-950 ${barberBody.className}`}
     >
-      {/* 1. NAVBAR PRO */}
+      {/* 1. HEADER & NAVBAR */}
       <TemplateNavbar
         businessName={content.business_name}
-        tagline={content.subtitle || "Barbier & Coiffure masculine"}
+        tagline={content.subtitle || "Coiffure & Barbier"}
         phone={content.phone}
         primaryColor={primaryColor}
         icon={Scissors}
         links={navLinks}
-        ctaLabel="Prendre RDV"
+        ctaLabel={content.phone ? "Appeler" : "Contact"}
         themeMode="dark"
         headingFontClass={barberHeading.className}
         isPreview={isPreview}
       />
 
       <main>
-        {/* 2. HERO SECTION CONTRASTÉE & PUISSANTE */}
+        {/* 2. HERO SECTION */}
         <section
           className={`relative overflow-hidden ${
             isPreview ? "pt-3 pb-5" : "pt-8 pb-16 sm:pt-14 sm:pb-24 border-b border-neutral-900"
@@ -74,10 +73,10 @@ export default function BarberTemplate({
             }`}
           >
             <div
-              className={`relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-end border border-neutral-800 shadow-2xl ${
+              className={`relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-end border border-neutral-800 shadow-xl ${
                 isPreview
                   ? "min-h-[360px] p-4"
-                  : "min-h-[460px] sm:min-h-[560px] p-5 sm:p-10 lg:p-14"
+                  : "min-h-[440px] sm:min-h-[520px] p-5 sm:p-10 lg:p-12"
               }`}
             >
               <ImageWithFallback
@@ -94,30 +93,22 @@ export default function BarberTemplate({
               />
 
               <div className="relative z-10 max-w-2xl">
-                <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
-                  {content.rating ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-amber-300 text-[11px] sm:text-xs font-bold shadow-xs">
-                      <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+                {/* Note réelle Google si disponible (aucun badge inventé) */}
+                {hasRealRating && (
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-900/90 border border-neutral-700/80 text-amber-300 text-xs font-medium">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                       <span>{Number(content.rating).toFixed(1)} / 5</span>
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-amber-300 text-[11px] sm:text-xs font-bold shadow-xs">
-                      <Scissors className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
-                      <span>Barbier & Coiffure</span>
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700/80 text-neutral-300 text-[11px] sm:text-xs font-medium shadow-xs">
-                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-neutral-400" />
-                    <span>Avec ou sans RDV</span>
-                  </span>
-                </div>
+                  </div>
+                )}
 
                 <h1
                   className={`${
                     isPreview
                       ? "text-xl"
                       : "text-2xl sm:text-4xl lg:text-5xl"
-                  } font-black text-white tracking-tight uppercase leading-[1.05] ${barberHeading.className}`}
+                  } font-bold text-white tracking-tight leading-tight ${barberHeading.className}`}
                 >
                   {content.business_name}
                 </h1>
@@ -126,7 +117,7 @@ export default function BarberTemplate({
                   <p
                     className={`mt-2 ${
                       isPreview ? "text-xs" : "text-xs sm:text-base"
-                    } text-neutral-300 font-normal leading-relaxed text-balance max-w-xl`}
+                    } text-neutral-300 font-normal leading-relaxed max-w-xl`}
                   >
                     {content.tagline}
                   </p>
@@ -136,30 +127,30 @@ export default function BarberTemplate({
                   className={`flex ${
                     isPreview
                       ? "flex-col w-full items-stretch gap-2 mt-4"
-                      : "flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 mt-5 sm:mt-8"
+                      : "flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mt-5 sm:mt-7"
                   }`}
                 >
                   {content.phone && (
                     <a
                       href={isPreview ? "#" : formatTelHref(content.phone)}
                       style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                      className={`h-11 sm:h-13 px-5 sm:px-7 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/15 active:scale-95 transition cursor-pointer ${
+                      className={`h-11 px-5 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-95 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
                       }`}
                     >
                       <Scissors className="w-4 h-4 shrink-0" />
-                      <span>Prendre rendez-vous</span>
+                      <span>Prendre rendez-vous par téléphone</span>
                     </a>
                   )}
 
-                  {content.services_or_menu && content.services_or_menu.length > 0 && (
+                  {hasServices && (
                     <a
                       href="#prestations"
-                      className={`h-11 sm:h-13 px-5 sm:px-6 rounded-xl sm:rounded-2xl bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/80 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 backdrop-blur-md transition cursor-pointer ${
+                      className={`h-11 px-5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/80 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
                         isPreview ? "w-full" : "w-full sm:w-auto"
                       }`}
                     >
-                      <span>Voir les tarifs</span>
+                      <span>Consulter les prestations</span>
                     </a>
                   )}
                 </div>
@@ -172,9 +163,8 @@ export default function BarberTemplate({
         {content.about && (
           <TemplateSection
             id="apropos"
-            badge="L'artisanat"
-            title="Précision, style & savoir-faire masculin"
-            subtitle="Ici, chaque coupe et chaque barbe est traitée avec le souci du détail absolu. Pas de travail à la chaîne : du sur-mesure."
+            title="À propos"
+            subtitle="Présentation du salon et informations pratiques."
             primaryColor={primaryColor}
             headingFontClass={barberHeading.className}
             isPreview={isPreview}
@@ -187,53 +177,42 @@ export default function BarberTemplate({
               <div
                 className={`${
                   isPreview ? "" : "lg:col-span-7"
-                } space-y-5 text-sm sm:text-base text-neutral-300 leading-relaxed max-w-prose`}
+                } space-y-4 text-sm sm:text-base text-neutral-300 leading-relaxed max-w-prose`}
               >
-                <p className="text-white text-sm sm:text-lg font-medium leading-relaxed">
+                <p className="text-neutral-200 text-sm sm:text-base font-normal leading-relaxed">
                   {content.about}
                 </p>
+                {content.address && (
+                  <p className="text-xs text-neutral-400 flex items-center gap-1.5 pt-2">
+                    <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                    <span>{content.address}</span>
+                  </p>
+                )}
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-neutral-900">
-                  <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-neutral-800">
-                    <Zap className="w-4 h-4 text-amber-400 mb-1.5" />
-                    <h4 className="font-bold text-xs text-white">Dégradés laser</h4>
-                    <p className="text-[10px] text-neutral-400 mt-0.5">Taper, skin fade, crop</p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-neutral-800">
-                    <Shield className="w-4 h-4 text-amber-400 mb-1.5" />
-                    <h4 className="font-bold text-xs text-white">Barbe rituelle</h4>
-                    <p className="text-[10px] text-neutral-400 mt-0.5">Coupe-choux & serviette</p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-neutral-800">
-                    <UserCheck className="w-4 h-4 text-amber-400 mb-1.5" />
-                    <h4 className="font-bold text-xs text-white">Diagnostic morpho</h4>
-                    <p className="text-[10px] text-neutral-400 mt-0.5">Conseils personnalisés</p>
-                  </div>
+              {validGallery.length > 0 && (
+                <div className={isPreview ? "w-full" : "lg:col-span-5"}>
+                  <ImageWithFallback
+                    src={validGallery[0]}
+                    alt={content.business_name}
+                    aspectRatioClass="aspect-[4/3] rounded-2xl"
+                    className="rounded-2xl border border-neutral-800"
+                    primaryColor={primaryColor}
+                    fallbackIcon={Scissors}
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
                 </div>
-              </div>
-
-              <div className={isPreview ? "w-full" : "lg:col-span-5"}>
-                <ImageWithFallback
-                  src={validGallery[0] || content.hero_image_url}
-                  alt={`Espace de coiffure et barbier - ${content.business_name}`}
-                  aspectRatioClass="aspect-[4/3] rounded-2xl sm:rounded-3xl"
-                  className="rounded-2xl sm:rounded-3xl border border-neutral-800 shadow-2xl"
-                  primaryColor={primaryColor}
-                  fallbackIcon={Scissors}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              </div>
+              )}
             </div>
           </TemplateSection>
         )}
 
-        {/* 4. SECTION PRESTATIONS AVEC DURÉES ET PRIX */}
-        {content.services_or_menu && content.services_or_menu.length > 0 && (
+        {/* 4. SECTION PRESTATIONS (Masquée tant que vide) */}
+        {hasServices && (
           <TemplateSection
             id="prestations"
-            badge="Tarifs & Soins"
-            title="Menu des prestations"
-            subtitle="Des formules complètes pour cheveux et barbe, exécutées dans les règles de l'art."
+            title="Prestations & Tarifs"
+            subtitle="Nos coupes, tailles de barbe et soins."
             primaryColor={primaryColor}
             headingFontClass={barberHeading.className}
             className="bg-neutral-900/40 border-y border-neutral-900"
@@ -246,34 +225,15 @@ export default function BarberTemplate({
               headingFontClass={barberHeading.className}
               isPreview={isPreview}
             />
-
-            <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl bg-neutral-900/90 border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-300">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>
-                  Tous nos rituels barbe comprennent serviette chaude aux huiles essentielles et baume nourrissant.
-                </span>
-              </div>
-              {content.phone && (
-                <a
-                  href={isPreview ? "#" : formatTelHref(content.phone)}
-                  style={{ backgroundColor: primaryColor, color: ctaTextColor }}
-                  className="h-10 px-5 rounded-xl font-black uppercase text-[11px] tracking-wider flex items-center justify-center shrink-0 shadow-md active:scale-95 transition"
-                >
-                  Prendre RDV au {content.phone}
-                </a>
-              )}
-            </div>
           </TemplateSection>
         )}
 
-        {/* 5. SECTION RÉALISATIONS (GALERIE - Masquée si aucune photo) */}
+        {/* 5. SECTION GALERIE DE PHOTOS (Masquée si aucune photo) */}
         {validGallery.length > 0 && (
           <TemplateSection
             id="galerie"
-            badge="Réalisations"
-            title="Le feed du salon"
-            subtitle="Découvrez quelques-unes de nos réalisations récentes sorties du fauteuil."
+            title="Galerie"
+            subtitle="Aperçu des réalisations au salon."
             primaryColor={primaryColor}
             headingFontClass={barberHeading.className}
             isPreview={isPreview}
@@ -284,11 +244,11 @@ export default function BarberTemplate({
               }`}
             >
               {validGallery.map((imgUrl, idx) => (
-                <div key={idx} className="group overflow-hidden rounded-xl sm:rounded-2xl border border-neutral-800">
+                <div key={idx} className="overflow-hidden rounded-xl border border-neutral-800">
                   <ImageWithFallback
                     src={imgUrl}
-                    alt={`Coupe de cheveux et taille de barbe soignée - ${content.business_name} (réalisation ${idx + 1})`}
-                    aspectRatioClass="aspect-square"
+                    alt={`Photo - ${content.business_name} (${idx + 1})`}
+                    aspectRatioClass="aspect-[4/3]"
                     primaryColor={primaryColor}
                     fallbackIcon={Scissors}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -303,9 +263,8 @@ export default function BarberTemplate({
         {hasRealRating && (
           <TemplateSection
             id="avis"
-            badge="Avis clients"
             title="Avis clients"
-            subtitle="Les retours authentiques de nos clients après leur passage au fauteuil."
+            subtitle="Notes et retours partagés sur Google Maps."
             primaryColor={primaryColor}
             headingFontClass={barberHeading.className}
             className="bg-neutral-900/30 border-y border-neutral-900"
@@ -323,12 +282,11 @@ export default function BarberTemplate({
           </TemplateSection>
         )}
 
-        {/* 7. HORAIRES & PLAN */}
+        {/* 7. HORAIRES & ACCÈS */}
         <TemplateSection
           id="horaires"
-          badge="Accès"
-          title="Horaires d'ouverture & Localisation"
-          subtitle="Passez nous voir au shop. Parking à proximité."
+          title="Horaires d'ouverture & Accès"
+          subtitle="Retrouvez nos horaires d'ouverture et nos coordonnées ci-dessous."
           primaryColor={primaryColor}
           headingFontClass={barberHeading.className}
           isPreview={isPreview}
@@ -348,27 +306,27 @@ export default function BarberTemplate({
 
             <div
               className={`${
-                isPreview ? "w-full p-4 sm:p-6" : "lg:col-span-5 p-6 sm:p-8"
-              } bg-neutral-900/90 border border-neutral-800 rounded-2xl sm:rounded-3xl space-y-5`}
+                isPreview ? "w-full p-4 sm:p-5" : "lg:col-span-5 p-5 sm:p-7"
+              } bg-neutral-900/90 border border-neutral-800 rounded-2xl space-y-4`}
             >
               <div>
-                <h3 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-rose-400" />
-                  <span>Adresse du shop</span>
+                <h3 className="font-semibold text-white text-base flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-neutral-400" />
+                  <span>Adresse & Coordonnées</span>
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-300 mt-1.5 leading-relaxed">
+                <p className="text-xs sm:text-sm text-neutral-300 mt-1 leading-relaxed">
                   {content.address || "Adresse sur demande"}
                 </p>
               </div>
 
               {content.phone && (
                 <div className="pt-3 border-t border-neutral-800">
-                  <span className="text-[11px] text-neutral-400 uppercase tracking-wider font-semibold block">
-                    Contact direct
+                  <span className="text-[11px] text-neutral-400 font-medium block">
+                    Contact téléphonique
                   </span>
                   <a
                     href={isPreview ? "#" : formatTelHref(content.phone)}
-                    className="text-base sm:text-lg font-black mt-0.5 block tracking-tight hover:underline"
+                    className="text-base sm:text-lg font-bold mt-0.5 block hover:underline"
                     style={{ color: primaryColor }}
                   >
                     {content.phone}
@@ -380,10 +338,10 @@ export default function BarberTemplate({
                 href={isPreview ? "#" : mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full h-11 sm:h-12 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-neutral-700 transition cursor-pointer"
+                className="w-full h-10 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-medium text-xs flex items-center justify-center gap-2 border border-neutral-700 transition cursor-pointer"
               >
-                <MapPin className="w-3.5 h-3.5 text-rose-400" />
-                <span>Ouvrir dans Maps</span>
+                <MapPin className="w-3.5 h-3.5 text-neutral-400" />
+                <span>Ouvrir sur Google Maps</span>
               </a>
             </div>
           </div>
@@ -400,7 +358,7 @@ export default function BarberTemplate({
         themeMode="dark"
       />
 
-      {/* 9. BARRE FIXE MOBILE */}
+      {/* 9. BARRE FIXE BAS DE PAGE (MOBILE) */}
       <MobileStickyBar
         phone={content.phone}
         address={content.address}

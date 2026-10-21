@@ -96,7 +96,7 @@ export default function OpeningHoursCard({
               <span>{schedule.dayName}</span>
               {schedule.isToday && (
                 <span
-                  className="px-1.5 py-0.5 rounded text-[10px] uppercase font-extrabold tracking-wider"
+                  className="px-1.5 py-0.5 rounded text-[11px] font-medium"
                   style={{
                     backgroundColor: `${primaryColor}20`,
                     color: primaryColor,

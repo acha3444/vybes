@@ -25,8 +25,8 @@ export function generateProspectingMessages(
     businessName,
     category,
     city,
-    rating = 4.8,
-    reviewsCount = 45,
+    rating,
+    reviewsCount,
     demoUrl,
     freelanceName,
   } = input
@@ -40,50 +40,51 @@ export function generateProspectingMessages(
 
   const offerType =
     category === "restaurant"
-      ? "votre carte, vos horaires et votre bouton d'appel pour réserver"
+      ? "votre carte, vos horaires et votre contact direct"
       : category === "barber"
-      ? "vos prestations, vos tarifs et un bouton de prise de rendez-vous"
-      : "vos soins, vos tarifs et la réservation directe"
+      ? "vos prestations, vos horaires et la prise de rendez-vous"
+      : "vos soins, vos horaires et la prise de rendez-vous"
 
-  // 1. VERSION DM INSTAGRAM (Court, percutant, friendly, sans spam)
-  const instagram = `Salut l'équipe de ${businessName} 👋
+  const ratingMention =
+    rating && rating > 0
+      ? ` (${rating} sur Google${reviewsCount ? ` avec ${reviewsCount} avis` : ""})`
+      : ""
 
-Je suis tombé sur votre compte et vos super retours à ${city} (${rating}★, bravo pour le travail !).
+  // 1. VERSION DM INSTAGRAM (Sobre, direct, sans spam)
+  const instagram = `Bonjour,
 
-J'ai remarqué que vous n'aviez pas encore de site web mobile dédié pour afficher ${offerType}.
+J'ai découvert votre établissement à ${city}${ratingMention} et j'ai remarqué que vous n'aviez pas encore de site web mobile officiel.
 
-Pour vous montrer ce que ça donnerait, je vous ai préparé un aperçu complet et gratuit sur smartphone :
-👉 ${demoUrl}
+Pour vous montrer ce que cela donnerait, j'ai pris l'initiative de préparer un aperçu adapté aux smartphones pour présenter ${offerType} :
 
-Jetez un œil quand vous avez 2 minutes, c'est sans aucun engagement. Dites-moi ce que vous en pensez !
+${demoUrl}
 
-Belle journée,
+Vous pouvez le consulter librement quand vous avez deux minutes, c'est sans engagement.
+
+Bien à vous,
 ${freelanceName}`
 
-  // 2. VERSION SMS / WHATSAPP (Direct, mobile-first, lien immédiat)
-  const sms = `Bonjour ${businessName}, c'est ${freelanceName}. J'adore votre établissement à ${city} (${rating}★ sur Google !). J'ai pris l'initiative de créer un modèle de site web moderne adapté aux smartphones pour présenter ${offerType} : ${demoUrl} . Vous pouvez regarder quand vous voulez, c'est offert. Bonne journée !`
+  // 2. VERSION SMS / WHATSAPP (Court, direct, mobile)
+  const sms = `Bonjour, c'est ${freelanceName}. J'ai préparé un aperçu de site web mobile pour ${businessName} à ${city} afin de présenter ${offerType} : ${demoUrl} . Vous pouvez y jeter un coup d'œil quand vous voulez, c'est sans engagement. Bonne journée.`
 
-  // 3. VERSION EMAIL (Objet accrocheur avec fort taux d'ouverture + structure claire)
-  const emailSubject = `Aperçu de site web pour ${businessName} (démo prête sur mobile)`
+  // 3. VERSION EMAIL (Structuré et professionnel)
+  const emailSubject = `Aperçu de site web mobile pour ${businessName}`
 
-  const emailBody = `Bonjour l'équipe de ${businessName},
+  const emailBody = `Bonjour,
 
-Je m'appelle ${freelanceName}, je crée des sites web épurés pour les commerces locaux à ${city}.
+Je m'appelle ${freelanceName}, je conçois des sites web sobres et adaptés aux smartphones pour les commerces locaux à ${city}.
 
-En consultant vos avis Google (${rating}★ sur ${reviewsCount} avis), j'ai remarqué que ${categoryNoun} ne disposait pas encore d'un site internet optimisé pour smartphone.
+En consultant votre fiche à ${city}${ratingMention}, j'ai constaté que ${categoryNoun} ne disposait pas encore d'un site web dédié.
 
-Aujourd'hui, plus de 80% des clients cherchent ${categoryNoun} sur leur téléphone avant de réserver ou de se déplacer.
+Pour vous faire gagner du temps et vous montrer le rendu en situation réelle, j'ai préparé une première version de votre site :
 
-Pour vous faire gagner du temps, j'ai conçu un aperçu sur-mesure de ce à quoi pourrait ressembler votre site officiel (avec ${offerType}) :
+${demoUrl}
 
-👉 Voir la démonstration : ${demoUrl}
-
-Si le rendu vous plaît, je serais ravi d'échanger 5 minutes avec vous pour vous l'installer définitivement. Dans le cas contraire, aucun souci !
+Si le rendu vous intéresse, je serais ravi d'échanger quelques minutes avec vous pour vous l'installer. Dans le cas contraire, aucun problème.
 
 Bien cordialement,
 
-${freelanceName}
-Créateur de sites pour commerces locaux`
+${freelanceName}`
 
   return {
     instagram,

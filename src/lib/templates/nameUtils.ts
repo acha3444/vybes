@@ -1,5 +1,5 @@
 /**
- * Normalise les noms d'établissements venant de Google Places ou du registre officiel
+ * Normalise les noms d'établissements venant de Google Places
  * - Minuscules pour les petits mots français : du, de, la, le, les, des, et, à, au, aux, d', l'
  * - Sauf si le petit mot est le premier mot du nom
  * - Nettoie les sigles juridiques superflus (SARL, SAS, etc.)
@@ -94,3 +94,79 @@ export function normalizeBusinessName(rawName?: string | null): string {
 
   return formattedWords.filter(Boolean).join(" ")
 }
+
+/**
+ * Génère une phrase d'accueil avec une grammaire française irréprochable
+ * Ex: "Bienvenue au Restaurant du Ball-trap-club", "Bienvenue chez Johne Coiffure", "Bienvenue à l'Atelier"
+ */
+export function generateWelcomePhrase(
+  rawName: string,
+  category: "restaurant" | "barber" | "beauty" = "restaurant",
+  city?: string
+): string {
+  let name = normalizeBusinessName(rawName)
+
+  // Nettoie un éventuel suffixe "De [Ville]" ou "- De Lyon" redondant à la fin du nom commercial
+  if (city) {
+    const cityRegex = new RegExp(`\\s+(de|à|sur)\\s+${city}$`, "i")
+    name = name.replace(cityRegex, "").trim()
+  }
+
+  const lower = name.toLowerCase()
+
+  // 1. Déjà "Chez ..."
+  if (lower.startsWith("chez ")) {
+    return `Bienvenue ${name.charAt(0).toLowerCase() + name.slice(1)}`
+  }
+
+  // 2. Débute par un article défini : Le, La, L', Les
+  if (lower.startsWith("le ")) {
+    return `Bienvenue au ${name.slice(3)}`
+  }
+  if (lower.startsWith("la ")) {
+    return `Bienvenue à la ${name.slice(3)}`
+  }
+  if (lower.startsWith("l'") || lower.startsWith("l’")) {
+    return `Bienvenue à ${name}`
+  }
+  if (lower.startsWith("les ")) {
+    return `Bienvenue aux ${name.slice(4)}`
+  }
+
+  // 3. Débute par un nom d'établissement masculin
+  const masculineStarts = [
+    "restaurant",
+    "bistrot",
+    "bistro",
+    "café",
+    "cafe",
+    "bar",
+    "salon",
+    "comptoir",
+    "relais",
+    "pub",
+    "studio",
+  ]
+  for (const m of masculineStarts) {
+    if (lower === m || lower.startsWith(`${m} `)) {
+      return `Bienvenue au ${name}`
+    }
+  }
+
+  // 4. Débute par une voyelle / mot avec élision (Atelier, Institut, Espace)
+  const elisionStarts = ["atelier", "institut", "espace"]
+  for (const e of elisionStarts) {
+    if (lower === e || lower.startsWith(`${e} `)) {
+      return `Bienvenue à l'${name}`
+    }
+  }
+
+  // 5. Par défaut pour barber / institut portant un nom de personne ou d'enseigne
+  if (category === "barber" || category === "beauty") {
+    return `Bienvenue chez ${name}`
+  }
+
+  // 6. Par défaut pour restaurant
+  return `Bienvenue au ${name}`
+}
+
