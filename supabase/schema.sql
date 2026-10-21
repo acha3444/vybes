@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS public.demos (
     template_type TEXT NOT NULL CHECK (template_type IN ('restaurant', 'barber', 'beauty')),
     content JSONB NOT NULL DEFAULT '{}'::jsonb,
     views_count INTEGER DEFAULT 0 NOT NULL,
+    sent_at TIMESTAMPTZ DEFAULT NULL,
     expires_at TIMESTAMPTZ DEFAULT (now() + INTERVAL '14 days') NOT NULL,
     is_active BOOLEAN DEFAULT true NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,

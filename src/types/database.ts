@@ -76,6 +76,7 @@ export interface Demo {
   template_type: BusinessCategory
   content: DemoContent
   views_count: number
+  sent_at: string | null
   expires_at: string
   is_active: boolean
   created_at: string

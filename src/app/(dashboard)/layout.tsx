@@ -76,13 +76,12 @@ export default async function DashboardLayout({
                 </span>
               ) : (
                 <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium tabular-nums">
-                  {daysLeft} jours restants
+                  {daysLeft === 1 ? "1 jour restant" : `${daysLeft} jours restants`}
                 </span>
               )}
             </div>
             <p className="text-xs text-[#EDEDEF] group-hover:text-white flex items-center justify-between">
               <span>{isActive ? "Gérer mon abonnement" : "Passer à Vybe Pro (29 €/mois)"}</span>
-              <ExternalLink className="w-3 h-3 text-[#6E6E76] group-hover:text-[#6C5CE7]" />
             </p>
           </Link>
 

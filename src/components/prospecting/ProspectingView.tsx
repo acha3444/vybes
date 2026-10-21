@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Demo, Prospect } from "@/types/database"
 import { generateProspectingMessages } from "@/lib/prospecting/messages"
-import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+import { normalizeBusinessName, normalizeCityName } from "@/lib/templates/nameUtils"
 import { getDemoUrl } from "@/lib/utils"
 import {
   MessageSquare,
@@ -40,7 +40,7 @@ export default function ProspectingView({
   const messages = generateProspectingMessages({
     businessName: cleanBusinessName,
     category: prospect.category,
-    city: prospect.city || "votre ville",
+    city: normalizeCityName(prospect.city) || "votre ville",
     phone: prospect.phone,
     rating: prospect.rating,
     reviewsCount: prospect.user_ratings_total,
@@ -48,23 +48,31 @@ export default function ProspectingView({
     freelanceName,
   })
 
-  // Marque automatiquement le prospect comme 'demo_envoyee' dans la base
+  // Marque automatiquement le prospect comme 'demo_envoyee' et renseigne sent_at
   async function markAsSent() {
-    if (prospectStatus === "demo_envoyee" || prospectStatus === "interesse" || prospectStatus === "signe") {
-      return
-    }
-
     try {
-      const res = await fetch(`/api/prospects/${prospect.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "demo_envoyee" }),
-      })
+      // 1. Mise à jour de la démo
+      if (demo.id) {
+        fetch(`/api/demos/${demo.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark_sent: true }),
+        }).catch(() => {})
+      }
 
-      if (res.ok) {
-        setProspectStatus("demo_envoyee")
-        setStatusUpdatedAlert(true)
-        setTimeout(() => setStatusUpdatedAlert(false), 3000)
+      // 2. Mise à jour du statut du prospect
+      if (prospectStatus === "a_contacter") {
+        const res = await fetch(`/api/prospects/${prospect.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "demo_envoyee", mark_sent: true }),
+        })
+
+        if (res.ok) {
+          setProspectStatus("demo_envoyee")
+          setStatusUpdatedAlert(true)
+          setTimeout(() => setStatusUpdatedAlert(false), 3000)
+        }
       }
     } catch (e) {
       console.error("Erreur mise à jour statut prospect:", e)
@@ -125,7 +133,7 @@ export default function ProspectingView({
             </span>
           </div>
           <p className="text-xs text-[#6E6E76] mt-1">
-            {prospect.city || "France"} {prospect.phone ? `• ${prospect.phone}` : ""}
+            {normalizeCityName(prospect.city) || "France"} {prospect.phone ? `• ${prospect.phone}` : ""}
           </p>
         </div>
 

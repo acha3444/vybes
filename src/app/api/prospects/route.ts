@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { normalizeCityName } from "@/lib/templates/nameUtils"
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
         name,
         category,
         address: address || null,
-        city: city || null,
+        city: city ? normalizeCityName(city) : null,
         phone: phone || null,
         rating: rating || null,
         user_ratings_total: user_ratings_total || 0,

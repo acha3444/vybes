@@ -47,6 +47,16 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    // Si le statut passe en "demo_envoyee" ou mark_sent est demandé, renseigner sent_at sur la démo
+    if (status === "demo_envoyee" || body.mark_sent) {
+      await supabase
+        .from("demos")
+        .update({ sent_at: new Date().toISOString() })
+        .eq("prospect_id", id)
+        .eq("user_id", user.id)
+        .is("sent_at", null)
+    }
+
     return NextResponse.json({ success: true, prospect: data })
   } catch (error) {
     return NextResponse.json(

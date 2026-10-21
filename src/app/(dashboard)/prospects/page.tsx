@@ -18,7 +18,7 @@ export default async function ProspectsPage() {
   // Récupère tous les prospects de l'utilisateur avec leur démo associée
   const { data: prospects, error } = await supabase
     .from("prospects")
-    .select("*, demos(id, slug, views_count, expires_at, is_active, created_at, updated_at)")
+    .select("*, demos(id, slug, views_count, sent_at, expires_at, is_active, created_at, updated_at)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 

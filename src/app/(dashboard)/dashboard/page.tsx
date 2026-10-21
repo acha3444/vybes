@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { calculateUnifiedKpis } from "@/lib/prospects/stats"
-import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+import { normalizeBusinessName, normalizeCityName } from "@/lib/templates/nameUtils"
 import { formatRelativeDate } from "@/lib/utils"
 import {
   Compass,
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
     // 2. Tous les prospects de l'utilisateur (source unique pour les KPIs)
     const { data: prospects } = await supabase
       .from("prospects")
-      .select("id, name, category, city, status, created_at, demos(id, slug, views_count, updated_at)")
+      .select("id, name, category, city, status, created_at, demos(id, slug, views_count, sent_at, updated_at)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
 
@@ -205,7 +205,7 @@ export default async function DashboardPage() {
           <div className="text-2xl font-bold text-[#EDEDEF] tabular-nums">
             {kpis.demosSent}
           </div>
-          <span className="text-[11px] text-[#6E6E76]">Statut ≥ envoyée</span>
+          <span className="text-[11px] text-[#6E6E76]">Lien ou message transmis</span>
         </div>
 
         <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
@@ -215,14 +215,14 @@ export default async function DashboardPage() {
           <div className="text-2xl font-bold text-[#EDEDEF] tabular-nums">
             {kpis.merchantsOpened}
           </div>
-          <span className="text-[11px] text-[#6E6E76]">Vues uniques</span>
+          <span className="text-[11px] text-[#6E6E76]">Au moins 1 consultation</span>
         </div>
 
         <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
           <span className="text-[13px] font-medium text-[#A0A0A8] block mb-1">
             Clients signés
           </span>
-          <div className="text-2xl font-bold text-emerald-400 tabular-nums">
+          <div className={`text-2xl font-bold tabular-nums ${kpis.clientsSigned > 0 ? "text-emerald-400" : "text-[#EDEDEF]"}`}>
             {kpis.clientsSigned}
           </div>
           <span className="text-[11px] text-[#6E6E76]">Contrats conclus</span>
@@ -363,7 +363,7 @@ export default async function DashboardPage() {
                       )}
                     </div>
                     <p className="text-[11px] text-[#6E6E76] mt-0.5">
-                      {p.category === "restaurant" ? "Restaurant" : p.category === "barber" ? "Barber" : "Institut"} • {p.city || "France"}
+                      {p.category === "restaurant" ? "Restaurant" : p.category === "barber" ? "Barber" : "Institut"} • {normalizeCityName(p.city) || "France"}
                     </p>
                   </div>
 

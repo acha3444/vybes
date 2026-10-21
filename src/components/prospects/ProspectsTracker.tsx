@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Prospect, Demo, ProspectStatus } from "@/types/database"
 import { calculateUnifiedKpis } from "@/lib/prospects/stats"
-import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+import { normalizeBusinessName, normalizeCityName } from "@/lib/templates/nameUtils"
 import { getDemoUrl, formatRelativeDate } from "@/lib/utils"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import {
@@ -105,10 +105,18 @@ export default function ProspectsTracker({
     })
   }, [prospects])
 
-  // Filtrage
+  const isDemoSent = (p: ProspectWithDemo) => Boolean(p.demos?.[0]?.sent_at) || p.status === "demo_envoyee"
+
+  // Filtrage cohérent avec le KPI Démos envoyées
   const filtered = useMemo(() => {
     return sortedProspects.filter((p) => {
-      const matchesStatus = filterStatus === "all" || p.status === filterStatus
+      const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "demo_envoyee"
+          ? isDemoSent(p)
+          : filterStatus === "a_contacter"
+          ? p.status === "a_contacter" && !isDemoSent(p)
+          : p.status === filterStatus)
       const q = searchQuery.trim().toLowerCase()
       const matchesQuery =
         q === "" ||
@@ -119,17 +127,34 @@ export default function ProspectsTracker({
     })
   }, [sortedProspects, filterStatus, searchQuery])
 
-  // Mise à jour du statut
+  // Mise à jour du statut avec alimentation de sent_at
   async function handleStatusChange(prospectId: string, newStatus: ProspectStatus) {
     setProspects((prev) =>
-      prev.map((p) => (p.id === prospectId ? { ...p, status: newStatus } : p))
+      prev.map((p) => {
+        if (p.id === prospectId) {
+          const updatedDemos = p.demos
+            ? p.demos.map((d) => ({
+                ...d,
+                sent_at:
+                  newStatus === "demo_envoyee" || newStatus === "interesse" || newStatus === "signe"
+                    ? d.sent_at || new Date().toISOString()
+                    : d.sent_at,
+              }))
+            : p.demos
+          return { ...p, status: newStatus, demos: updatedDemos }
+        }
+        return p
+      })
     )
 
     try {
       await fetch(`/api/prospects/${prospectId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          mark_sent: newStatus === "demo_envoyee",
+        }),
       })
     } catch (e) {
       console.error("Erreur mise à jour statut:", e)
@@ -177,12 +202,33 @@ export default function ProspectsTracker({
     }
   }
 
-  // Copie sécurisée du lien démo
+  // Copie sécurisée du lien démo et marquage sent_at
   function handleCopyDemoLink(slug: string, prospect: ProspectWithDemo) {
     const url = getDemoUrl(slug)
     navigator.clipboard.writeText(url)
     setCopiedId(prospect.id)
     setTimeout(() => setCopiedId(null), 2000)
+
+    const demo = prospect.demos && prospect.demos[0]
+    if (demo?.id) {
+      fetch(`/api/demos/${demo.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_sent: true }),
+      }).catch(() => {})
+    }
+
+    setProspects((prev) =>
+      prev.map((p) => {
+        if (p.id === prospect.id) {
+          const updatedDemos = p.demos
+            ? p.demos.map((d) => ({ ...d, sent_at: d.sent_at || new Date().toISOString() }))
+            : p.demos
+          return { ...p, demos: updatedDemos }
+        }
+        return p
+      })
+    )
 
     // Si le prospect était encore à contacter, proposer le passage en démo envoyée
     if (prospect.status === "a_contacter") {
@@ -231,7 +277,7 @@ export default function ProspectsTracker({
           <div className="text-2xl font-bold text-[#EDEDEF] tabular-nums">
             {kpis.demosSent}
           </div>
-          <span className="text-[11px] text-[#6E6E76]">Statut ≥ envoyée</span>
+          <span className="text-[11px] text-[#6E6E76]">Lien ou message transmis</span>
         </div>
 
         <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
@@ -248,7 +294,7 @@ export default function ProspectsTracker({
           <span className="text-[13px] font-medium text-[#A0A0A8] block mb-1">
             Clients signés
           </span>
-          <div className="text-2xl font-bold text-emerald-400 tabular-nums">
+          <div className={`text-2xl font-bold tabular-nums ${kpis.clientsSigned > 0 ? "text-emerald-400" : "text-[#EDEDEF]"}`}>
             {kpis.clientsSigned}
           </div>
           <span className="text-[11px] text-[#6E6E76]">Contrats conclus</span>
@@ -283,7 +329,12 @@ export default function ProspectsTracker({
             </button>
 
             {(Object.keys(STATUS_LABELS) as ProspectStatus[]).map((st) => {
-              const count = prospects.filter((p) => p.status === st).length
+              const count =
+                st === "demo_envoyee"
+                  ? prospects.filter(isDemoSent).length
+                  : st === "a_contacter"
+                  ? prospects.filter((p) => p.status === "a_contacter" && !isDemoSent(p)).length
+                  : prospects.filter((p) => p.status === st).length
               return (
                 <button
                   key={st}
@@ -374,7 +425,7 @@ export default function ProspectsTracker({
                         {prospect.city && (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3 text-[#6E6E76]" />
-                            <span>{prospect.city}</span>
+                            <span>{normalizeCityName(prospect.city)}</span>
                           </span>
                         )}
                         {prospect.phone && (
@@ -417,7 +468,7 @@ export default function ProspectsTracker({
                           <span className="text-[#6E6E76]">Pas encore ouverte</span>
                         ) : (
                           <span className="text-[#EDEDEF] tabular-nums font-medium">
-                            Ouverte {viewsCount} fois
+                            {viewsCount === 1 ? "1 vue" : `${viewsCount} vues`}
                             {demo.updated_at && (
                               <span className="text-[#6E6E76] font-normal ml-1">
                                 (dernière {formatRelativeDate(demo.updated_at)})

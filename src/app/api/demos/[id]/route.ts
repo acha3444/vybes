@@ -17,19 +17,23 @@ export async function PATCH(
   }
 
   try {
-    const { content } = await request.json()
+    const body = await request.json()
+    const { content, mark_sent } = body
 
-    if (!content) {
-      return NextResponse.json({ error: "Contenu requis" }, { status: 400 })
+    if (!content && !mark_sent) {
+      return NextResponse.json({ error: "Contenu ou action requise" }, { status: 400 })
     }
 
-    // Mise à jour sécurisée via RLS (l'utilisateur ne met à jour que le content, jamais slug, expires_at ou views_count)
+    const updateFields: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+    if (content) updateFields.content = content
+    if (mark_sent) updateFields.sent_at = new Date().toISOString()
+
+    // Mise à jour sécurisée via RLS (l'utilisateur ne met à jour que le content ou sent_at, jamais slug, expires_at ou views_count)
     const { data, error } = await supabase
       .from("demos")
-      .update({
-        content,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateFields)
       .eq("id", id)
       .eq("user_id", user.id)
       .select()
