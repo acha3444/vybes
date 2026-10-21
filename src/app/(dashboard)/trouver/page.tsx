@@ -1,16 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { PlaceResult } from "@/lib/google-places"
-import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+import { normalizeBusinessName, normalizeCityName } from "@/lib/templates/nameUtils"
 import {
   Search,
   MapPin,
   Star,
   Compass,
   AlertCircle,
-  CheckCircle2,
   ArrowRight,
   RotateCcw,
 } from "lucide-react"
@@ -40,6 +40,7 @@ export default function TrouverPage() {
   const router = useRouter()
   const [city, setCity] = useState("Lyon")
   const [category, setCategory] = useState<"all" | "restaurant" | "barber" | "beauty">("all")
+  const [includeSurroundings, setIncludeSurroundings] = useState(false)
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<PlaceResult[]>([])
   const [hasSearched, setHasSearched] = useState(false)
@@ -70,10 +71,14 @@ export default function TrouverPage() {
 
   // Recherche initiale automatique
   useEffect(() => {
-    handleSearch("Lyon", "all")
+    handleSearch("Lyon", "all", false)
   }, [])
 
-  async function handleSearch(targetCity = city, targetCategory = category) {
+  async function handleSearch(
+    targetCity = city,
+    targetCategory = category,
+    targetSurroundings = includeSurroundings
+  ) {
     const trimmed = targetCity.trim()
     if (!trimmed) return
 
@@ -84,7 +89,7 @@ export default function TrouverPage() {
 
     try {
       const res = await fetch(
-        `/api/places/search?city=${encodeURIComponent(trimmed)}&category=${targetCategory}`
+        `/api/places/search?city=${encodeURIComponent(trimmed)}&category=${targetCategory}&includeSurroundings=${targetSurroundings}`
       )
       const data = await res.json()
 
@@ -104,7 +109,7 @@ export default function TrouverPage() {
 
       if (data.places) {
         setResults(data.places)
-        setSearchedCity(trimmed)
+        setSearchedCity(data.cityDisplay || normalizeCityName(trimmed))
       }
       if (typeof data.remaining === "number") {
         setRemainingSearches(data.remaining)
@@ -211,33 +216,51 @@ export default function TrouverPage() {
           <button
             type="submit"
             disabled={loading}
-            className="h-10 px-5 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0"
+            className="h-10 px-5 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0 cursor-pointer"
           >
             <Search className="w-4 h-4" />
             <span>Rechercher</span>
           </button>
         </form>
 
-        {/* Segments de catégories (sans emojis) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => {
-                const newCat = cat.id as any
-                setCategory(newCat)
-                handleSearch(city, newCat)
+        {/* Option d'élargissement et catégories */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          {/* Segments de catégories */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  const newCat = cat.id as any
+                  setCategory(newCat)
+                  handleSearch(city, newCat, includeSurroundings)
+                }}
+                className={`h-8 px-3 rounded-[6px] font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  category === cat.id
+                    ? "bg-[#6C5CE7] text-white"
+                    : "bg-[#1E1E22] text-[#A0A0A8] hover:text-[#EDEDEF] border border-[#2A2A2F]"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Option inclure les communes voisines */}
+          <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-[#A0A0A8] hover:text-[#EDEDEF] select-none shrink-0">
+            <input
+              type="checkbox"
+              checked={includeSurroundings}
+              onChange={(e) => {
+                const checked = e.target.checked
+                setIncludeSurroundings(checked)
+                handleSearch(city, category, checked)
               }}
-              className={`h-8 px-3 rounded-[6px] font-medium transition-colors whitespace-nowrap ${
-                category === cat.id
-                  ? "bg-[#6C5CE7] text-white"
-                  : "bg-[#1E1E22] text-[#A0A0A8] hover:text-[#EDEDEF] border border-[#2A2A2F]"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+              className="rounded-[4px] border-[#2A2A2F] bg-[#1E1E22] text-[#6C5CE7] focus:ring-0 cursor-pointer accent-[#6C5CE7]"
+            />
+            <span>Inclure les communes voisines</span>
+          </label>
         </div>
 
         {/* Villes rapides */}
@@ -249,9 +272,9 @@ export default function TrouverPage() {
               type="button"
               onClick={() => {
                 setCity(c)
-                handleSearch(c, category)
+                handleSearch(c, category, includeSurroundings)
               }}
-              className={`px-2 py-0.5 rounded-[4px] transition-colors ${
+              className={`px-2 py-0.5 rounded-[4px] transition-colors cursor-pointer ${
                 city.toLowerCase() === c.toLowerCase()
                   ? "bg-[#1E1E22] text-[#6C5CE7] font-semibold"
                   : "text-[#A0A0A8] hover:text-[#EDEDEF]"
@@ -289,7 +312,7 @@ export default function TrouverPage() {
           <button
             type="button"
             onClick={() => handleSearch()}
-            className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] border border-[#2A2A2F] flex items-center gap-1.5 transition-colors"
+            className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] border border-[#2A2A2F] flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Réessayer</span>
@@ -297,7 +320,7 @@ export default function TrouverPage() {
         </div>
       )}
 
-      {/* ÉTAT 3 : CHARGEMENT AVEC SQUELETTE DE LISTE (PAS SEULEMENT UN SPINNER) */}
+      {/* ÉTAT 3 : CHARGEMENT AVEC SQUELETTE DE LISTE */}
       {loading && (
         <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] divide-y divide-[#2A2A2F] overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -315,7 +338,7 @@ export default function TrouverPage() {
         </div>
       )}
 
-      {/* ÉTAT 4 : AVANT PREMIÈRE RECHERCHE (COURT MODE D'EMPLOI EN 3 LIGNES) */}
+      {/* ÉTAT 4 : AVANT PREMIÈRE RECHERCHE */}
       {!loading && !hasSearched && (
         <div className="p-5 rounded-[12px] bg-[#17171A] border border-[#2A2A2F] space-y-3">
           <span className="text-[11px] font-semibold text-[#A0A0A8] uppercase tracking-wider block">
@@ -346,29 +369,41 @@ export default function TrouverPage() {
             Aucun commerce sans site trouvé pour cette catégorie à {searchedCity}
           </h3>
           <p className="text-xs text-[#A0A0A8] max-w-md mx-auto leading-relaxed">
-            Essaie de basculer sur « Toutes les catégories » ou de tester une ville ou commune voisine plus dense.
+            Essaie d&apos;élargir aux communes voisines ou de basculer sur « Toutes les catégories ».
           </p>
-          <div className="pt-2">
+          <div className="pt-2 flex items-center justify-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => {
                 setCategory("all")
-                handleSearch(city, "all")
+                handleSearch(city, "all", includeSurroundings)
               }}
-              className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] border border-[#2A2A2F] text-xs font-medium transition-colors"
+              className="h-8 px-3 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] border border-[#2A2A2F] text-xs font-medium transition-colors cursor-pointer"
             >
-              Élargir à toutes les catégories
+              Toutes les catégories
             </button>
+            {!includeSurroundings && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIncludeSurroundings(true)
+                  handleSearch(city, category, true)
+                }}
+                className="h-8 px-3 rounded-[6px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium transition-colors cursor-pointer"
+              >
+                Inclure les communes voisines
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      {/* ÉTAT 6 : LISTE DENSE DES RÉSULTATS (NOM, CATÉGORIE, VILLE, NOTE + AVIS, CRÉER DÉMO) */}
+      {/* ÉTAT 6 : LISTE DENSE DES RÉSULTATS */}
       {!loading && !searchError && results.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs text-[#A0A0A8] px-1">
             <span>
-              <strong className="text-[#EDEDEF] tabular-nums font-semibold">{results.length}</strong> commerces sans site web à {searchedCity}
+              <strong className="text-[#EDEDEF] tabular-nums font-semibold">{results.length}</strong> commerce{results.length > 1 ? "s" : ""} sans site web {includeSurroundings ? "à et autour de" : "à"} {searchedCity}
             </span>
             <span className="text-[#6E6E76]">Triés par nombre d&apos;avis</span>
           </div>
@@ -380,12 +415,13 @@ export default function TrouverPage() {
                 Boolean(savedProspectMap[place.id]) ||
                 Boolean(savedProspectMap[place.name.trim().toLowerCase()])
 
-              const categoryLabel =
+              const categoryBadge = place.categoryDisplay || (
                 place.category === "restaurant"
                   ? "Restaurant"
                   : place.category === "barber"
-                  ? "Barber"
+                  ? "Coiffure"
                   : "Institut"
+              )
 
               return (
                 <div
@@ -395,15 +431,15 @@ export default function TrouverPage() {
                   {/* INFOS DU COMMERCE */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-[#EDEDEF] truncate">
+                      <span className="font-semibold text-sm text-[#EDEDEF] truncate" title={place.name}>
                         {normalizeBusinessName(place.name)}
                       </span>
-                      <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-[#1E1E22] text-[#A0A0A8] border border-[#2A2A2F]">
-                        {categoryLabel}
+                      <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-[#1E1E22] text-[#A0A0A8] border border-[#2A2A2F] shrink-0 whitespace-nowrap">
+                        {categoryBadge}
                       </span>
                       {isAlreadyProspect && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
-                          Déjà dans vos prospects
+                        <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium shrink-0 whitespace-nowrap">
+                          Déjà dans tes prospects
                         </span>
                       )}
                     </div>
@@ -429,27 +465,33 @@ export default function TrouverPage() {
                     </div>
                   </div>
 
-                  {/* ACTION : CRÉER LA DÉMO */}
+                  {/* ACTION : CRÉER DÉMO (STYLE SECONDAIRE / CONTOUR) OU VOIR */}
                   <div className="shrink-0 self-start sm:self-center">
-                    <button
-                      type="button"
-                      disabled={isSaving}
-                      onClick={() => handleCreateDemo(place)}
-                      className={`h-8 px-3.5 rounded-[6px] text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                        isAlreadyProspect
-                          ? "bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] border border-[#2A2A2F]"
-                          : "bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white"
-                      } disabled:opacity-50`}
-                    >
-                      {isSaving ? (
-                        <span>Création…</span>
-                      ) : (
-                        <>
-                          <span>{isAlreadyProspect ? "Ouvrir démo" : "Créer la démo"}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </>
-                      )}
-                    </button>
+                    {isAlreadyProspect ? (
+                      <Link
+                        href={`/prospects?search=${encodeURIComponent(place.name)}`}
+                        className="h-8 px-3 rounded-[8px] text-xs font-medium transition-colors flex items-center gap-1.5 border border-[#2A2A2F] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF]"
+                      >
+                        <span>Voir</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-[#6E6E76]" />
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleCreateDemo(place)}
+                        className="h-8 px-3.5 rounded-[8px] text-xs font-medium transition-colors flex items-center gap-1.5 border border-[#6C5CE7] text-[#6C5CE7] hover:bg-[#6C5CE7] hover:text-white disabled:opacity-50 cursor-pointer"
+                      >
+                        {isSaving ? (
+                          <span>Création…</span>
+                        ) : (
+                          <>
+                            <span>Créer la démo</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               )

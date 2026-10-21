@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
     | "beauty"
     | "all"
 
+  const includeSurroundings = searchParams.get("includeSurroundings") === "true"
+
   if (!city || city.trim().length === 0) {
     return NextResponse.json(
       { error: "Veuillez spécifier une ville" },
@@ -62,7 +64,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { places, source } = await searchPlacesWithoutWebsite(city, category)
+    const { places, source, cityDisplay } = await searchPlacesWithoutWebsite(
+      city,
+      category,
+      includeSurroundings
+    )
     
     // Incrémente le décompte
     userQuota.count += 1
@@ -72,7 +78,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       city,
+      cityDisplay,
       category,
+      includeSurroundings,
       count: places.length,
       source,
       places,

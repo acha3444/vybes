@@ -170,3 +170,58 @@ export function generateWelcomePhrase(
   return `Bienvenue au ${name}`
 }
 
+const KNOWN_FRENCH_CITIES: Record<string, string> = {
+  "venissieux": "Vénissieux",
+  "saint-etienne": "Saint-Étienne",
+  "saint etienne": "Saint-Étienne",
+  "saint-denis": "Saint-Denis",
+  "saint denis": "Saint-Denis",
+  "villefranche-sur-saone": "Villefranche-sur-Saône",
+  "villefranche sur saone": "Villefranche-sur-Saône",
+  "aix-en-provence": "Aix-en-Provence",
+  "aix en provence": "Aix-en-Provence",
+  "nimes": "Nîmes",
+  "orleans": "Orléans",
+  "beziers": "Béziers",
+  "clermont-ferrand": "Clermont-Ferrand",
+  "clermont ferrand": "Clermont-Ferrand",
+  "boulogne-billancourt": "Boulogne-Billancourt",
+  "asnières-sur-seine": "Asnières-sur-Seine",
+  "asnieres sur seine": "Asnières-sur-Seine",
+  "asnieres-sur-seine": "Asnières-sur-Seine",
+  "le havre": "Le Havre",
+  "la rochelle": "La Rochelle",
+}
+
+/**
+ * Normalise le nom d'une ville (casse normale avec accents, jamais de MAJUSCULES intégrales)
+ * Ex: "VENISSIEUX" -> "Vénissieux", "VILLEFRANCHE-SUR-SAONE" -> "Villefranche-sur-Saône"
+ */
+export function normalizeCityName(rawCity?: string | null): string {
+  if (!rawCity) return ""
+  const clean = rawCity.trim().replace(/\s+/g, " ")
+  const lower = clean.toLowerCase()
+  if (KNOWN_FRENCH_CITIES[lower]) {
+    return KNOWN_FRENCH_CITIES[lower]
+  }
+
+  const particles = new Set(["sur", "sous", "les", "le", "la", "aux", "au", "en", "de", "du"])
+
+  return clean
+    .split(" ")
+    .map((word, wIdx) => {
+      return word
+        .split("-")
+        .map((part, pIdx) => {
+          if (!part) return ""
+          const pLower = part.toLowerCase()
+          if ((wIdx > 0 || pIdx > 0) && particles.has(pLower)) {
+            return pLower
+          }
+          return pLower.charAt(0).toUpperCase() + pLower.slice(1)
+        })
+        .join("-")
+    })
+    .join(" ")
+}
+
