@@ -79,7 +79,7 @@ export default async function CreerDemoPage({
       cleanBusinessName,
       prospect.city || "votre ville",
       prospect.address || "",
-      prospect.phone || "01 23 45 67 89"
+      prospect.phone || ""
     ),
     rating: prospect.rating ?? null,
     reviews_count: prospect.user_ratings_total ?? null,

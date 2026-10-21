@@ -1,153 +1,212 @@
-import { Search, Zap, Eye, MessageCircle, MapPin, Clock, Star } from "lucide-react"
+"use client"
 
-/** Mockup animé du hero : un téléphone affichant une démo, entouré des étapes du parcours. */
+import { useState } from "react"
+import { Search, Smartphone, MessageSquare, Star, MapPin, Phone, Clock, ArrowRight, Check } from "lucide-react"
+
 export function HeroVisual() {
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1)
+
   return (
-    <div className="relative mx-auto w-full max-w-[420px] aspect-[4/5] select-none" aria-hidden>
-      {/* Halo derrière le téléphone */}
-      <div className="absolute inset-[12%] rounded-full bg-gradient-to-tr from-indigo-600/40 via-violet-500/30 to-fuchsia-500/30 blur-3xl" />
+    <div className="w-full max-w-[460px] mx-auto bg-[#17171A] border border-[#2A2A2F] rounded-[12px] overflow-hidden shadow-xl">
+      {/* Barre d'onglets de navigation entre les 3 étapes réelles */}
+      <div className="flex border-b border-[#2A2A2F] bg-[#0F0F11] text-xs">
+        <button
+          type="button"
+          onClick={() => setActiveStep(1)}
+          className={`flex-1 py-2.5 px-3 font-medium flex items-center justify-center gap-1.5 transition-colors border-r border-[#2A2A2F] ${
+            activeStep === 1
+              ? "bg-[#17171A] text-[#EDEDEF]"
+              : "text-[#6E6E76] hover:text-[#A0A0A8]"
+          }`}
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>1. Recherche</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveStep(2)}
+          className={`flex-1 py-2.5 px-3 font-medium flex items-center justify-center gap-1.5 transition-colors border-r border-[#2A2A2F] ${
+            activeStep === 2
+              ? "bg-[#17171A] text-[#EDEDEF]"
+              : "text-[#6E6E76] hover:text-[#A0A0A8]"
+          }`}
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>2. Démo</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveStep(3)}
+          className={`flex-1 py-2.5 px-3 font-medium flex items-center justify-center gap-1.5 transition-colors ${
+            activeStep === 3
+              ? "bg-[#17171A] text-[#EDEDEF]"
+              : "text-[#6E6E76] hover:text-[#A0A0A8]"
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>3. Message</span>
+        </button>
+      </div>
 
-      {/* Téléphone */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[62%] animate-float-slow">
-        <div className="rounded-[2.4rem] p-[7px] bg-gradient-to-b from-neutral-700 to-neutral-900 shadow-2xl shadow-indigo-950/60 ring-1 ring-white/10">
-          <div className="relative rounded-[2rem] overflow-hidden bg-[#faf7f2] aspect-[9/19]">
-            {/* Encoche */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-4 rounded-full bg-black z-10" />
-
-            {/* Hero du site de démo */}
-            <div className="relative h-[42%] bg-gradient-to-br from-amber-700 via-orange-800 to-stone-900 flex flex-col justify-end p-3.5">
-              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,#fde68a,transparent_55%)]" />
-              <span className="relative text-[8px] font-semibold uppercase tracking-[0.2em] text-amber-200/90">
-                Bistrot · Lyon 4e
+      {/* Contenu réel de l'étape sélectionnée */}
+      <div className="p-4 sm:p-5 min-h-[360px] flex flex-col justify-between">
+        {activeStep === 1 && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="flex items-center justify-between text-xs text-[#A0A0A8] pb-1 border-b border-[#2A2A2F]">
+              <span className="flex items-center gap-1 text-[#EDEDEF] font-medium">
+                <MapPin className="w-3.5 h-3.5 text-[#6C5CE7]" />
+                Lyon • Restaurants sans site
               </span>
-              <span className="relative font-serif text-xl leading-tight text-white">
-                Le Petit Zinc
-              </span>
-              <span className="relative mt-1 flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
-                ))}
-              </span>
+              <span className="text-[#6E6E76] tabular-nums">28 trouvés</span>
             </div>
 
-            {/* Contenu */}
-            <div className="p-3 space-y-2.5">
-              <div className="h-8 rounded-xl bg-stone-900 text-white text-[10px] font-semibold flex items-center justify-center">
-                Réserver une table
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-white border border-stone-200 p-2">
-                  <Clock className="w-3 h-3 text-amber-700 mb-1" />
-                  <div className="h-1.5 w-10 rounded bg-stone-300" />
-                  <div className="h-1.5 w-7 rounded bg-stone-200 mt-1" />
+            {/* Fausse liste d'un commerce réel avec ses vraies métadonnées */}
+            <div className="p-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h4 className="font-semibold text-sm text-[#EDEDEF]">
+                    Bistrot Saint-Paul
+                  </h4>
+                  <p className="text-[11px] text-[#A0A0A8]">
+                    Restaurant français • 18 rue Juiverie, 69005 Lyon
+                  </p>
                 </div>
-                <div className="rounded-xl bg-white border border-stone-200 p-2">
-                  <MapPin className="w-3 h-3 text-amber-700 mb-1" />
-                  <div className="h-1.5 w-9 rounded bg-stone-300" />
-                  <div className="h-1.5 w-11 rounded bg-stone-200 mt-1" />
+                <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium whitespace-nowrap">
+                  Aucun site officiel
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-1.5 text-xs text-[#EDEDEF] tabular-nums">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span className="font-semibold">4.7</span>
+                  <span className="text-[#6E6E76]">(74 avis Google)</span>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(2)}
+                  className="h-7 px-2.5 rounded-[6px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-[11px] font-medium flex items-center gap-1 transition-colors"
+                >
+                  <span>Créer la démo</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
-              <div className="flex gap-2">
-                <div className="h-14 flex-1 rounded-xl bg-gradient-to-br from-orange-200 to-amber-400" />
-                <div className="h-14 flex-1 rounded-xl bg-gradient-to-br from-rose-200 to-orange-300" />
-                <div className="h-14 flex-1 rounded-xl bg-gradient-to-br from-lime-200 to-emerald-300" />
+            </div>
+
+            <div className="p-3 rounded-[8px] bg-[#1E1E22]/60 border border-[#2A2A2F]/60 space-y-2 opacity-75">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h4 className="font-semibold text-sm text-[#EDEDEF]">
+                    L&apos;Ardoise des Halles
+                  </h4>
+                  <p className="text-[11px] text-[#A0A0A8]">
+                    Bistrot de quartier • 102 cours Lafayette, 69003 Lyon
+                  </p>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium whitespace-nowrap">
+                  Aucun site officiel
+                </span>
               </div>
-              <div className="space-y-1">
-                <div className="h-1.5 w-full rounded bg-stone-200" />
-                <div className="h-1.5 w-4/5 rounded bg-stone-200" />
-                <div className="h-1.5 w-3/5 rounded bg-stone-200" />
+              <div className="flex items-center gap-1.5 text-xs text-[#EDEDEF] tabular-nums">
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span className="font-semibold">4.6</span>
+                <span className="text-[#6E6E76]">(42 avis)</span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Notifications flottantes */}
-      <FloatingCard
-        className="left-0 top-[10%]"
-        enterDelay="400ms"
-        floatDelay="0s"
-        icon={<Search className="w-4 h-4" />}
-        tone="indigo"
-        title="Commerce trouvé"
-        subtitle="Aucun site web"
-      />
-      <FloatingCard
-        className="right-0 top-[28%]"
-        enterDelay="700ms"
-        floatDelay="-2s"
-        icon={<Zap className="w-4 h-4" />}
-        tone="violet"
-        title="Démo générée"
-        subtitle="en 58 secondes"
-      />
-      <FloatingCard
-        className="left-[-2%] bottom-[22%]"
-        enterDelay="1000ms"
-        floatDelay="-4s"
-        icon={<Eye className="w-4 h-4" />}
-        tone="emerald"
-        title="Démo consultée"
-        subtitle="3 visites aujourd'hui"
-        live
-      />
-      <FloatingCard
-        className="right-[2%] bottom-[6%]"
-        enterDelay="1300ms"
-        floatDelay="-1s"
-        icon={<MessageCircle className="w-4 h-4" />}
-        tone="pink"
-        title="Nouveau message"
-        subtitle="« On en parle demain ? »"
-      />
-    </div>
-  )
-}
+        {activeStep === 2 && (
+          <div className="space-y-3 animate-fade-in">
+            {/* Aperçu du rendu mobile */}
+            <div className="rounded-[8px] border border-[#2A2A2F] bg-[#111114] p-3 text-xs space-y-3">
+              <div className="flex items-center justify-between text-[11px] text-[#A0A0A8] pb-1 border-b border-[#2A2A2F]">
+                <span>Démo générée automatiquement</span>
+                <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                  <Check className="w-3 h-3" />
+                  Prête
+                </span>
+              </div>
 
-const TONES = {
-  indigo: "bg-indigo-500/15 text-indigo-300",
-  violet: "bg-violet-500/15 text-violet-300",
-  emerald: "bg-emerald-500/15 text-emerald-300",
-  pink: "bg-pink-500/15 text-pink-300",
-}
+              <div className="rounded-[8px] bg-stone-900 text-stone-100 p-4 space-y-2 border border-stone-800">
+                <span className="text-[10px] text-amber-400 font-medium block">
+                  Bistrot traditionnel • Lyon 5e
+                </span>
+                <h4 className="text-base font-bold text-white tracking-tight">
+                  Bistrot Saint-Paul
+                </h4>
+                <p className="text-[11px] text-stone-300 leading-relaxed">
+                  Cuisine de marché, produits frais du terroir lyonnais.
+                </p>
 
-function FloatingCard({
-  className,
-  enterDelay,
-  floatDelay,
-  icon,
-  tone,
-  title,
-  subtitle,
-  live,
-}: {
-  className: string
-  enterDelay: string
-  floatDelay: string
-  icon: React.ReactNode
-  tone: keyof typeof TONES
-  title: string
-  subtitle: string
-  live?: boolean
-}) {
-  return (
-    <div className={`absolute z-10 animate-fade-up ${className}`} style={{ animationDelay: enterDelay }}>
-      <div
-        className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-neutral-900/80 backdrop-blur-xl px-3 py-2.5 shadow-xl shadow-black/40 animate-float"
-        style={{ animationDelay: floatDelay }}
-      >
-        <div className={`relative w-8 h-8 rounded-xl flex items-center justify-center ${TONES[tone]}`}>
-          {icon}
-          {live && (
-            <span className="absolute -top-0.5 -right-0.5 flex w-2.5 h-2.5">
-              <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping-soft" />
-              <span className="relative w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-neutral-900" />
-            </span>
-          )}
-        </div>
-        <div className="leading-tight pr-1">
-          <p className="text-[12px] font-semibold text-white whitespace-nowrap">{title}</p>
-          <p className="text-[11px] text-neutral-400 whitespace-nowrap">{subtitle}</p>
+                <div className="pt-2 flex items-center gap-2">
+                  <div className="h-7 px-3 rounded-[6px] bg-[#c2410c] text-white text-[11px] font-medium flex items-center gap-1">
+                    <Phone className="w-3 h-3" />
+                    <span>Appeler • 04 78 28 00 00</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-[#A0A0A8]">
+                <div className="p-2 rounded-[6px] bg-[#17171A] border border-[#2A2A2F]">
+                  <Clock className="w-3 h-3 text-[#EDEDEF] mb-1" />
+                  <span>Mar - Sam : 12h-14h30 • 19h-22h</span>
+                </div>
+                <div className="p-2 rounded-[6px] bg-[#17171A] border border-[#2A2A2F]">
+                  <MapPin className="w-3 h-3 text-[#EDEDEF] mb-1" />
+                  <span>18 rue Juiverie, Lyon 5e</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveStep(3)}
+              className="w-full h-8 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium flex items-center justify-center gap-1.5 border border-[#2A2A2F] transition-colors"
+            >
+              <span>Voir le message de prospection</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {activeStep === 3 && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="flex items-center justify-between text-xs text-[#A0A0A8] pb-1 border-b border-[#2A2A2F]">
+              <span className="text-[#EDEDEF] font-medium">Message SMS / DM Instagram</span>
+              <span className="text-[#6E6E76]">Personnalisé automatiquement</span>
+            </div>
+
+            <div className="p-3.5 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs text-[#EDEDEF] leading-relaxed space-y-2">
+              <p>
+                Bonjour, c&apos;est Achraf. J&apos;ai préparé un aperçu de site web mobile pour Bistrot Saint-Paul à Lyon afin de présenter votre carte, vos horaires et votre contact direct :
+              </p>
+              <div className="p-2 rounded-[6px] bg-[#17171A] text-[#6C5CE7] font-mono text-[11px] select-all border border-[#2A2A2F]">
+                https://vybe.fr/d/bistrot-saint-paul
+              </div>
+              <p className="text-[#A0A0A8]">
+                Vous pouvez y jeter un coup d&apos;œil quand vous avez deux minutes, c&apos;est sans engagement. Bonne journée.
+              </p>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between text-[11px] text-[#A0A0A8]">
+              <span>Lien sécurisé avec suivi des ouvertures</span>
+              <button
+                type="button"
+                onClick={() => setActiveStep(1)}
+                className="text-[#6C5CE7] hover:underline"
+              >
+                Recommencer le flux
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Pied de carte avec statut */}
+        <div className="pt-3 border-t border-[#2A2A2F] flex items-center justify-between text-[11px] text-[#6E6E76]">
+          <span>Flux réel sans artifice</span>
+          <span className="tabular-nums">Étape {activeStep} sur 3</span>
         </div>
       </div>
     </div>

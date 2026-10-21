@@ -140,20 +140,20 @@ function InscriptionForm() {
 
   if (successEmailSent) {
     return (
-      <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl text-center">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center mb-4">
-          <CheckCircle2 className="w-8 h-8" />
+      <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-6 sm:p-8 text-center">
+        <div className="w-12 h-12 rounded-[8px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center mb-4">
+          <CheckCircle2 className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Vérifie ta boîte mail !
+        <h2 className="text-xl font-bold text-[#EDEDEF] mb-2">
+          Vérifie ta boîte mail
         </h2>
-        <p className="text-neutral-400 text-sm mb-6">
-          Nous avons envoyé un lien magique de confirmation à <strong className="text-white">{email}</strong>.
+        <p className="text-[#A0A0A8] text-xs leading-relaxed mb-6">
+          Nous avons envoyé un lien de confirmation à <strong className="text-[#EDEDEF]">{email}</strong>.
           Clique dessus pour activer ton compte et commencer tes 7 jours gratuits.
         </p>
         <Link
           href="/connexion"
-          className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-sm transition-colors"
+          className="inline-flex items-center justify-center h-9 px-4 rounded-[8px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] border border-[#2A2A2F] text-xs font-medium transition-colors"
         >
           Retour à la page de connexion
         </Link>
@@ -162,25 +162,19 @@ function InscriptionForm() {
   }
 
   return (
-    <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
-      {/* Badge essai gratuit */}
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4 mx-auto w-fit">
-        <Sparkles className="w-3.5 h-3.5" />
-        <span>7 jours d&apos;essai gratuit offerts</span>
-      </div>
-
+    <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-6 sm:p-8">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Décroche ton 1er client 🚀
+        <h1 className="text-xl sm:text-2xl font-bold text-[#EDEDEF] tracking-tight">
+          Créer un compte
         </h1>
-        <p className="text-sm text-neutral-400 mt-1">
-          Crée ton compte en 30 secondes et génère ta première démo de site.
+        <p className="text-xs text-[#A0A0A8] mt-1">
+          7 jours d&apos;essai gratuit inclus, sans engagement.
         </p>
       </div>
 
       {errorMessage && (
-        <div className="mb-6 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-rose-300 text-sm">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-400" />
+        <div className="mb-5 p-3 rounded-[8px] bg-red-500/10 border border-red-500/20 flex items-start gap-2.5 text-red-300 text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -190,12 +184,12 @@ function InscriptionForm() {
         type="button"
         onClick={handleGoogleSignUp}
         disabled={googleLoading || loading}
-        className="w-full h-12 rounded-2xl bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-white font-medium text-sm flex items-center justify-center gap-3 transition-colors active:scale-[0.99] disabled:opacity-50"
+        className="w-full h-10 rounded-[8px] bg-[#1E1E22] hover:bg-[#2A2A2F] border border-[#2A2A2F] text-[#EDEDEF] font-medium text-xs flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50"
       >
         {googleLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin text-neutral-400" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#A0A0A8]" />
         ) : (
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -217,56 +211,56 @@ function InscriptionForm() {
         <span>S&apos;inscrire avec Google</span>
       </button>
 
-      <div className="relative my-6 text-center">
+      <div className="relative my-5 text-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-neutral-800" />
+          <div className="w-full border-t border-[#2A2A2F]" />
         </div>
-        <span className="relative px-3 bg-neutral-900 text-xs uppercase tracking-wider text-neutral-400 font-medium">
+        <span className="relative px-3 bg-[#17171A] text-xs text-[#6E6E76] font-medium">
           ou avec ton adresse email
         </span>
       </div>
 
-      <form onSubmit={handleSignUp} className="space-y-4">
+      <form onSubmit={handleSignUp} className="space-y-3.5">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+          <label className="block text-xs font-medium text-[#A0A0A8] mb-1">
             Prénom ou Nom
           </label>
           <div className="relative">
-            <User className="w-5 h-5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <User className="w-4 h-4 text-[#6E6E76] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Alexandre"
-              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-neutral-500 text-sm outline-none transition-all"
+              className="w-full h-10 pl-9 pr-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] focus:border-[#6C5CE7] text-[#EDEDEF] placeholder-[#6E6E76] text-xs outline-none transition-colors"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+          <label className="block text-xs font-medium text-[#A0A0A8] mb-1">
             Email
           </label>
           <div className="relative">
-            <Mail className="w-5 h-5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Mail className="w-4 h-4 text-[#6E6E76] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ton@email.com"
-              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-neutral-500 text-sm outline-none transition-all"
+              className="w-full h-10 pl-9 pr-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] focus:border-[#6C5CE7] text-[#EDEDEF] placeholder-[#6E6E76] text-xs outline-none transition-colors"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+          <label className="block text-xs font-medium text-[#A0A0A8] mb-1">
             Mot de passe
           </label>
           <div className="relative">
-            <Lock className="w-5 h-5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Lock className="w-4 h-4 text-[#6E6E76] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="password"
               required
@@ -274,7 +268,7 @@ function InscriptionForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimum 6 caractères"
-              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-neutral-500 text-sm outline-none transition-all"
+              className="w-full h-10 pl-9 pr-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] focus:border-[#6C5CE7] text-[#EDEDEF] placeholder-[#6E6E76] text-xs outline-none transition-colors"
             />
           </div>
         </div>
@@ -282,24 +276,24 @@ function InscriptionForm() {
         <button
           type="submit"
           disabled={loading || googleLoading}
-          className="w-full h-13 mt-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-base shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
+          className="w-full h-10 mt-2 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
         >
           {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-white" />
+            <Loader2 className="w-4 h-4 animate-spin text-white" />
           ) : (
             <>
               <span>Démarrer mes 7 jours gratuits</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </>
           )}
         </button>
       </form>
 
-      <p className="text-center text-sm text-neutral-400 mt-6">
+      <p className="text-center text-xs text-[#A0A0A8] mt-5">
         Déjà un compte ?{" "}
         <Link
           href="/connexion"
-          className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors"
+          className="text-[#6C5CE7] hover:underline font-medium transition-colors"
         >
           Se connecter
         </Link>

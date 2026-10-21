@@ -1,53 +1,56 @@
 "use client"
 
 import { useState } from "react"
-import { TrendingUp } from "lucide-react"
+import { Calculator } from "lucide-react"
 
 const MONTHLY_PRICE = 29
 
 export function RoiCalculator() {
   const [price, setPrice] = useState(600)
   const months = Math.floor(price / MONTHLY_PRICE)
-  const progress = ((price - 200) / (2000 - 200)) * 100
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6 sm:p-8">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <label htmlFor="roi-price" className="text-sm font-medium text-neutral-300">
-          Prix auquel tu vends un site
-        </label>
-        <span className="font-mono text-2xl font-bold text-white tabular-nums">
+    <div className="rounded-[12px] border border-[#2A2A2F] bg-[#17171A] p-5 sm:p-6 space-y-5">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <label htmlFor="roi-price" className="text-xs font-medium text-[#A0A0A8] block">
+            Prix de vente d&apos;un site
+          </label>
+          <span className="text-[11px] text-[#6E6E76]">Tarif moyen facturé à un commerce</span>
+        </div>
+        <span className="text-xl sm:text-2xl font-bold text-[#EDEDEF] tabular-nums">
           {price.toLocaleString("fr-FR")} €
         </span>
       </div>
 
-      <input
-        id="roi-price"
-        type="range"
-        min={200}
-        max={2000}
-        step={50}
-        value={price}
-        onChange={(e) => setPrice(Number(e.target.value))}
-        className="w-full h-2 rounded-full appearance-none cursor-pointer accent-indigo-500"
-        style={{
-          background: `linear-gradient(to right, #818cf8 0%, #c084fc ${progress}%, rgb(255 255 255 / 0.08) ${progress}%)`,
-        }}
-      />
-
-      <div className="mt-8 flex items-end gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-          <TrendingUp className="w-6 h-6" />
+      <div>
+        <input
+          id="roi-price"
+          type="range"
+          min={200}
+          max={2000}
+          step={50}
+          value={price}
+          onChange={(e) => setPrice(Number(e.target.value))}
+          className="w-full h-2 rounded-full appearance-none cursor-pointer bg-[#1E1E22] accent-[#6C5CE7]"
+        />
+        <div className="flex justify-between text-[11px] text-[#6E6E76] mt-1.5 tabular-nums">
+          <span>200 €</span>
+          <span>1 000 €</span>
+          <span>2 000 €</span>
         </div>
-        <p className="text-neutral-300 leading-snug">
-          Un seul client signé rembourse{" "}
-          <span
-            key={months}
-            className="inline-block animate-fade-up font-black text-3xl sm:text-4xl text-gradient align-baseline"
-          >
+      </div>
+
+      <div className="pt-4 border-t border-[#2A2A2F] flex items-center gap-3">
+        <div className="w-9 h-9 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-[#6C5CE7] flex items-center justify-center shrink-0">
+          <Calculator className="w-4 h-4" />
+        </div>
+        <p className="text-xs sm:text-sm text-[#A0A0A8] leading-relaxed">
+          Si tu vends un site <strong className="text-[#EDEDEF] tabular-nums">{price.toLocaleString("fr-FR")} €</strong>, il couvre{" "}
+          <strong className="text-[#6C5CE7] tabular-nums font-bold text-base sm:text-lg">
             {months} mois
-          </span>{" "}
-          de Vybe.
+          </strong>{" "}
+          d&apos;abonnement.
         </p>
       </div>
     </div>

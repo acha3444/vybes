@@ -11,6 +11,8 @@ import DemoBanner from "@/components/templates/DemoBanner"
 import DemoExpired from "@/components/templates/DemoExpired"
 import { getDaysRemaining } from "@/lib/utils"
 
+import { Demo, DemoContent } from "@/types/database"
+
 export const dynamic = "force-dynamic"
 
 // RÈGLE IMPORTANTE : Les démos ne doivent JAMAIS être indexées par Google
@@ -30,6 +32,44 @@ export default async function PublicDemoPage({
 
   if (!slug || slug.length < 5) {
     notFound()
+  }
+
+  // Support immédiat pour le lien "Voir une démo exemple" (commerce fictif transparent)
+  if (slug === "exemple") {
+    const exampleContent: DemoContent = {
+      business_name: "Bistrot des Deux Amis (Exemple Fictif)",
+      subtitle: "Cuisine de marché & Carte de saison",
+      tagline: "Une table conviviale au cœur du quartier",
+      about: "Démonstration interactive créée avec Vybe pour illustrer la présentation mobile d'un établissement local.",
+      address: "12 rue des Démonstrations, 69002 Lyon",
+      phone: "04 78 00 00 00",
+      hero_image_url: "",
+      gallery_images: [],
+      opening_hours: [
+        "Lundi : Fermé",
+        "Mardi : 12h00 - 14h30, 19h00 - 22h30",
+        "Mercredi : 12h00 - 14h30, 19h00 - 22h30",
+        "Jeudi : 12h00 - 14h30, 19h00 - 22h30",
+        "Vendredi : 12h00 - 14h30, 19h00 - 23h00",
+        "Samedi : 12h00 - 15h00, 19h00 - 23h00",
+        "Dimanche : Fermé",
+      ],
+      primary_color: "#c2410c",
+      rating: 4.8,
+      reviews_count: 46,
+      services_or_menu: [
+        { name: "Plat du jour", price: "16,50 €", desc: "Ardoise du marché servie au déjeuner" },
+        { name: "Formule déjeuner", price: "21,00 €", desc: "Entrée + Plat ou Plat + Dessert" },
+        { name: "Café gourmand", price: "7,50 €", desc: "Sélection de douceurs de saison" },
+      ],
+    }
+
+    return (
+      <div className="relative">
+        <DemoBanner expiresInDays={14} />
+        <RestaurantTemplate content={exampleContent} />
+      </div>
+    )
   }
 
   // 1. Récupération des informations de la requête

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AlertCircle, X, Sparkles } from "lucide-react"
+import { Info, X } from "lucide-react"
 
 export default function DemoBanner({
   expiresInDays,
@@ -13,16 +13,16 @@ export default function DemoBanner({
   if (closed) return null
 
   return (
-    <div className="sticky top-0 z-50 bg-neutral-900/95 backdrop-blur-md border-b border-amber-500/30 text-neutral-200 px-3 py-2 text-xs transition-all shadow-md">
+    <div className="sticky top-0 z-50 bg-[#17171A] border-b border-[#2A2A2F] text-[#EDEDEF] px-3 py-2 text-xs transition-all shadow-md">
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 overflow-hidden">
-          <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 text-amber-400">
-            <Sparkles className="w-3 h-3" />
+          <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+            <Info className="w-3 h-3" />
           </span>
           <p className="text-[11px] sm:text-xs truncate">
-            <strong className="text-amber-400 font-bold">Aperçu de démonstration</strong> : ce site n&apos;est pas le site officiel de l&apos;établissement.
+            <strong className="text-amber-300 font-semibold">Aperçu de démonstration</strong> : ce site n&apos;est pas le site officiel de l&apos;établissement.
             {expiresInDays !== undefined && expiresInDays > 0 && (
-              <span className="hidden sm:inline text-neutral-400 ml-1.5">
+              <span className="hidden sm:inline text-[#A0A0A8] ml-1.5 tabular-nums">
                 (Aperçu actif encore {expiresInDays}j)
               </span>
             )}
