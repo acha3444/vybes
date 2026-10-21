@@ -89,3 +89,26 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export async function GET() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ prospects: [] })
+  }
+
+  const { data: prospects, error } = await supabase
+    .from("prospects")
+    .select("id, name, google_place_id")
+    .eq("user_id", user.id)
+
+  if (error) {
+    return NextResponse.json({ prospects: [] })
+  }
+
+  return NextResponse.json({ prospects: prospects || [] })
+}
+

@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { searchPlacesWithoutWebsite } from "@/lib/google-places"
 
+interface UserQuota {
+  date: string
+  count: number
+}
+
+// Suivi du quota quotidien par utilisateur (en mémoire serveur)
+const userDailyQuotas = new Map<string, UserQuota>()
+const DEFAULT_LIMIT = 30
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
 
@@ -10,8 +19,6 @@ export async function GET(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Pour le développement local, si pas encore connecté on accepte ou renvoie 401
-  // On laisse passer si la requête contient un header dev ou si la session est présente
   if (!user && process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
   }
@@ -31,8 +38,37 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  // 2. Vérification du quota quotidien (usage équitable)
+  const dailyLimit = parseInt(process.env.DAILY_SEARCH_LIMIT || `${DEFAULT_LIMIT}`, 10)
+  const today = new Date().toISOString().split("T")[0]
+  const quotaKey = user?.id || request.headers.get("x-forwarded-for") || "local_user"
+
+  const userQuota = userDailyQuotas.get(quotaKey) || { date: today, count: 0 }
+  if (userQuota.date !== today) {
+    userQuota.date = today
+    userQuota.count = 0
+  }
+
+  if (userQuota.count >= dailyLimit) {
+    return NextResponse.json(
+      {
+        error: "quota_reached",
+        message: `Quota quotidien atteint (${dailyLimit} recherches/jour). Revenez demain pour de nouvelles recherches.`,
+        limit: dailyLimit,
+        remaining: 0,
+      },
+      { status: 429 }
+    )
+  }
+
   try {
     const { places, source } = await searchPlacesWithoutWebsite(city, category)
+    
+    // Incrémente le décompte
+    userQuota.count += 1
+    userDailyQuotas.set(quotaKey, userQuota)
+    const remaining = Math.max(0, dailyLimit - userQuota.count)
+
     return NextResponse.json({
       success: true,
       city,
@@ -40,11 +76,13 @@ export async function GET(request: NextRequest) {
       count: places.length,
       source,
       places,
+      remaining,
+      limit: dailyLimit,
     })
   } catch (error) {
     console.error("Erreur API search places:", error)
     return NextResponse.json(
-      { error: "Impossible de récupérer les commerces" },
+      { error: "Impossible de récupérer les commerces pour le moment." },
       { status: 500 }
     )
   }

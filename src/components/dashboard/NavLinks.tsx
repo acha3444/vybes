@@ -21,7 +21,7 @@ export function SidebarNav() {
   const isActive = useIsActive()
 
   return (
-    <nav className="space-y-1 pt-2">
+    <nav className="space-y-1 pt-1">
       {LINKS.map(({ href, label, icon: Icon }) => {
         const active = isActive(href)
         return (
@@ -29,27 +29,19 @@ export function SidebarNav() {
             key={href}
             href={href}
             className={cn(
-              "group relative flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all duration-300",
+              "flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[13px] font-medium transition-colors",
               active
-                ? "text-white bg-gradient-to-r from-indigo-500/15 to-transparent"
-                : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
+                ? "bg-[#1E1E22] text-[#EDEDEF] border border-[#2A2A2F]"
+                : "text-[#A0A0A8] hover:text-[#EDEDEF] hover:bg-[#17171A] border border-transparent"
             )}
           >
-            <span
-              className={cn(
-                "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full bg-gradient-to-b from-indigo-400 to-violet-500 transition-all duration-500 ease-out-expo",
-                active ? "h-6 opacity-100" : "h-0 opacity-0"
-              )}
-            />
             <Icon
               className={cn(
-                "w-5 h-5 transition-all duration-300 group-hover:scale-110",
-                active ? "text-indigo-400" : "text-neutral-500 group-hover:text-neutral-300"
+                "w-4 h-4 shrink-0 transition-colors",
+                active ? "text-[#6C5CE7]" : "text-[#6E6E76]"
               )}
             />
-            <span className="transition-transform duration-300 group-hover:translate-x-0.5">
-              {label}
-            </span>
+            <span>{label}</span>
           </Link>
         )
       })}
@@ -61,31 +53,23 @@ export function BottomNav() {
   const isActive = useIsActive()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/85 backdrop-blur-xl border-t border-white/[0.06] px-3 py-2 flex items-center justify-around md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0F0F11] border-t border-[#2A2A2F] px-2 py-1.5 flex items-center justify-around md:hidden">
       {LINKS.map(({ href, short, icon: Icon }) => {
         const active = isActive(href)
         return (
           <Link
             key={href}
             href={href}
-            className="relative flex flex-col items-center gap-1 py-1 px-3 transition-colors active:scale-95"
+            className={cn(
+              "flex flex-col items-center gap-1 py-1 px-3 rounded-[8px] transition-colors",
+              active ? "text-[#6C5CE7]" : "text-[#6E6E76] hover:text-[#A0A0A8]"
+            )}
           >
-            <span
-              className={cn(
-                "absolute -top-2 h-[2px] rounded-full bg-gradient-to-r from-indigo-400 to-violet-500 transition-all duration-500 ease-out-expo",
-                active ? "w-8 opacity-100" : "w-0 opacity-0"
-              )}
-            />
-            <Icon
-              className={cn(
-                "w-5 h-5 transition-all duration-300",
-                active ? "text-indigo-400 -translate-y-0.5" : "text-neutral-500"
-              )}
-            />
+            <Icon className="w-4 h-4" />
             <span
               className={cn(
                 "text-[11px]",
-                active ? "font-semibold text-white" : "font-medium text-neutral-500"
+                active ? "font-semibold text-[#EDEDEF]" : "font-normal"
               )}
             >
               {short}

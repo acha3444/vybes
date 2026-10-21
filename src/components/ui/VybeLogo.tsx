@@ -137,7 +137,7 @@ export function VybeLogo({
             vybe
           </span>
           {subtitle && (
-            <span className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-1 leading-none">
+            <span className="text-[11px] text-[#A0A0A8] font-normal mt-0.5 leading-none">
               {subtitle}
             </span>
           )}

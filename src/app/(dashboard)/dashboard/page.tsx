@@ -1,19 +1,25 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { calculateUnifiedKpis } from "@/lib/prospects/stats"
+import { normalizeBusinessName } from "@/lib/templates/nameUtils"
+import { formatRelativeDate } from "@/lib/utils"
 import {
   Compass,
   ArrowRight,
-  TrendingUp,
-  Globe,
+  Check,
   Eye,
-  CheckCircle,
+  MessageSquare,
   Sparkles,
   Search,
-  MessageSquare,
-  Zap,
+  CheckCircle2,
 } from "lucide-react"
 
 export const dynamic = "force-dynamic"
+
+function capitalize(str: string): string {
+  if (!str) return "Créateur"
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -23,23 +29,11 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   let fullName = user?.user_metadata?.full_name || "Créateur"
-  let stats = {
-    prospectsCount: 0,
-    demosCount: 0,
-    viewsCount: 0,
-    signedCount: 0,
-  }
-  let recentProspects: Array<{
-    id: string
-    name: string
-    category: string
-    city: string | null
-    status: string
-    created_at: string
-  }> = []
+  let allProspects: any[] = []
+  let totalDemosCount = 0
 
   if (user) {
-    // Profil
+    // 1. Profil
     const { data: profile } = await supabase
       .from("profiles")
       .select("full_name")
@@ -50,293 +44,360 @@ export default async function DashboardPage() {
       fullName = profile.full_name
     }
 
-    // Statistiques des prospects
+    // 2. Tous les prospects de l'utilisateur (source unique pour les KPIs)
     const { data: prospects } = await supabase
       .from("prospects")
-      .select("id, name, category, city, status, created_at, demos(id, slug, views_count)")
+      .select("id, name, category, city, status, created_at, demos(id, slug, views_count, updated_at)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(5)
 
     if (prospects) {
-      stats.prospectsCount = prospects.length
-      stats.signedCount = prospects.filter((p) => p.status === "signe").length
-      recentProspects = prospects as any
+      allProspects = prospects
     }
 
-    // Statistiques des démos
-    const { data: demos } = await supabase
+    // 3. Nombre exact de démos
+    const { count } = await supabase
       .from("demos")
-      .select("id, views_count")
+      .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
 
-    if (demos) {
-      stats.demosCount = demos.length
-      stats.viewsCount = demos.reduce((acc, curr) => acc + (curr.views_count || 0), 0)
-    }
+    totalDemosCount = count || 0
   }
 
-  const firstName = fullName.split(" ")[0]
+  const rawFirst = fullName.trim().split(" ")[0] || "Créateur"
+  const firstName = capitalize(rawFirst)
+
+  // KPIs unifiés
+  const kpis = calculateUnifiedKpis(allProspects, totalDemosCount)
+
+  // Prochaine action prioritaire
+  // 1. Prospect qui a ouvert récemment mais non signé/perdu
+  const openedProspect = allProspects.find((p) => {
+    const demo = p.demos && p.demos[0]
+    return (demo?.views_count || 0) > 0 && p.status !== "signe" && p.status !== "perdu"
+  })
+
+  // 2. Démos créées mais jamais envoyées
+  const unsentDemos = allProspects.filter((p) => {
+    const demo = p.demos && p.demos[0]
+    return demo && p.status === "a_contacter"
+  })
+
+  // 3. Prospects sans démo
+  const prospectsWithoutDemo = allProspects.filter((p) => !p.demos || p.demos.length === 0)
+
+  // Checklist de démarrage
+  const checklist = {
+    firstSearch: allProspects.length > 0,
+    firstDemo: kpis.demosCreated > 0,
+    firstSent: kpis.demosSent > 0,
+    firstOpened: kpis.merchantsOpened > 0,
+  }
+  const isChecklistCompleted =
+    checklist.firstSearch &&
+    checklist.firstDemo &&
+    checklist.firstSent &&
+    checklist.firstOpened
+
+  const recentProspects = allProspects.slice(0, 5)
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
-      {/* HEADER AVEC SALUTATION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fade-in pb-12">
+      {/* HEADER : SALUTATION PROPRE SANS EMOJI */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-            <span>Salut {firstName}</span>
-            <span className="inline-block animate-wave origin-bottom-right">👋</span>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#EDEDEF]">
+            Bonjour {firstName}
           </h1>
-          <p className="text-sm text-neutral-400 mt-1">
-            Trouve des commerces locaux sans site, envoie leur démo et signe tes premiers contrats.
+          <p className="text-xs text-[#A0A0A8] mt-1">
+            Voici l&apos;état de tes prospections et tes actions à mener aujourd&apos;hui.
           </p>
         </div>
 
         <Link
           href="/trouver"
-          className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition-all active:scale-[0.98] shrink-0"
+          className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white font-medium text-xs transition-colors shrink-0"
         >
-          <Compass className="w-4 h-4" />
+          <Compass className="w-3.5 h-3.5" />
           <span>Trouver un commerce</span>
         </Link>
       </div>
 
-      {/* CARTES STATISTIQUES (KPIS) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* KPI 1 : Prospects */}
-        <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-neutral-700 transition-colors">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Prospects
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {stats.prospectsCount}
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1">Commerces ciblés</p>
+      {/* BLOC LA PROCHAINE ACTION (PRIORITAIRE EN HAUT DU DASHBOARD) */}
+      <div className="p-4 sm:p-5 rounded-[12px] bg-[#17171A] border border-[#2A2A2F] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-[11px] font-medium text-[#A0A0A8] block mb-0.5">
+            Prochaine action recommandée
+          </span>
+          {openedProspect ? (
+            <p className="text-sm font-semibold text-[#EDEDEF]">
+              <span className="text-emerald-400 font-bold">{normalizeBusinessName(openedProspect.name)}</span> a ouvert sa démo{" "}
+              {openedProspect.demos?.[0]?.updated_at
+                ? formatRelativeDate(openedProspect.demos[0].updated_at)
+                : "récemment"}.
+            </p>
+          ) : unsentDemos.length > 0 ? (
+            <p className="text-sm font-semibold text-[#EDEDEF]">
+              <span className="tabular-nums font-bold text-[#6C5CE7]">{unsentDemos.length}</span> démo{unsentDemos.length > 1 ? "s" : ""} prête{unsentDemos.length > 1 ? "s" : ""} n&apos;ont jamais été envoyées.
+            </p>
+          ) : prospectsWithoutDemo.length > 0 ? (
+            <p className="text-sm font-semibold text-[#EDEDEF]">
+              <span className="tabular-nums font-bold text-[#EDEDEF]">{prospectsWithoutDemo.length}</span> commerce{prospectsWithoutDemo.length > 1 ? "s" : ""} dans ta liste attendent leur démo.
+            </p>
+          ) : (
+            <p className="text-sm font-semibold text-[#EDEDEF]">
+              Lancer une recherche pour trouver des commerces sans site dans ta ville.
+            </p>
+          )}
         </div>
 
-        {/* KPI 2 : Démos */}
-        <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-neutral-700 transition-colors">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Démos créées
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <Globe className="w-4 h-4" />
-            </div>
+        {openedProspect ? (
+          <Link
+            href={`/prospecter?demo_id=${openedProspect.demos[0].id}`}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium transition-colors shrink-0"
+          >
+            <span>Relancer</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        ) : unsentDemos.length > 0 ? (
+          <Link
+            href={`/prospecter?demo_id=${unsentDemos[0].demos[0].id}`}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium transition-colors shrink-0"
+          >
+            <span>Envoyer</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        ) : prospectsWithoutDemo.length > 0 ? (
+          <Link
+            href={`/demos/creer?prospect_id=${prospectsWithoutDemo[0].id}`}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium transition-colors shrink-0"
+          >
+            <span>Créer la démo</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        ) : (
+          <Link
+            href="/trouver"
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium transition-colors shrink-0"
+          >
+            <span>Lancer la recherche</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
+      </div>
+
+      {/* LIGNE COMPACTE DE KPIS (MÊMES DÉFINITIONS QUE MES PROSPECTS) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
+          <span className="text-[13px] font-medium text-[#A0A0A8] block mb-1">
+            Démos créées
+          </span>
+          <div className="text-2xl font-bold text-[#EDEDEF] tabular-nums">
+            {kpis.demosCreated}
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {stats.demosCount}
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1">Sites prêts en 60s</p>
+          <span className="text-[11px] text-[#6E6E76]">Sites prêts</span>
         </div>
 
-        {/* KPI 3 : Vues démos */}
-        <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-neutral-700 transition-colors">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Vues commerçants
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <Eye className="w-4 h-4" />
-            </div>
+        <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
+          <span className="text-[13px] font-medium text-[#A0A0A8] block mb-1">
+            Démos envoyées
+          </span>
+          <div className="text-2xl font-bold text-[#EDEDEF] tabular-nums">
+            {kpis.demosSent}
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {stats.viewsCount}
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1">Ouvertures uniques</p>
+          <span className="text-[11px] text-[#6E6E76]">Statut ≥ envoyée</span>
         </div>
 
-        {/* KPI 4 : Clients signés */}
-        <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-neutral-700 transition-colors">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Clients signés
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4" />
-            </div>
+        <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
+          <span className="text-[13px] font-medium text-[#A0A0A8] block mb-1">
+            Commerçants qui ont ouvert
+          </span>
+          <div className="text-2xl font-bold text-[#EDEDEF] tabular-nums">
+            {kpis.merchantsOpened}
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {stats.signedCount}
+          <span className="text-[11px] text-[#6E6E76]">Vues uniques</span>
+        </div>
+
+        <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
+          <span className="text-[13px] font-medium text-[#A0A0A8] block mb-1">
+            Clients signés
+          </span>
+          <div className="text-2xl font-bold text-emerald-400 tabular-nums">
+            {kpis.clientsSigned}
           </div>
-          <p className="text-[11px] text-neutral-400 mt-1">Sites vendus</p>
+          <span className="text-[11px] text-[#6E6E76]">Contrats conclus</span>
         </div>
       </div>
 
-      {/* BANNIÈRE HERO ÉTAPE PAR ÉTAPE (EMPTY STATE GUIDÉ) */}
-      {stats.prospectsCount === 0 && (
-        <div className="relative overflow-hidden rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/40 via-neutral-900 to-neutral-900 p-6 sm:p-8 shadow-2xl">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="max-w-2xl relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-4">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Méthode en 60 secondes chrono</span>
-            </div>
-
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-              Ton premier client t&apos;attend déjà.
+      {/* CHECKLIST DE DÉMARRAGE (DISPARAÎT QUAND TOUT EST RÉALISÉ) */}
+      {!isChecklistCompleted && (
+        <div className="p-4 sm:p-5 rounded-[12px] bg-[#17171A] border border-[#2A2A2F]">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-[#EDEDEF]">
+              Checklist de démarrage
             </h2>
-            <p className="text-neutral-300 text-sm sm:text-base mt-2 leading-relaxed">
-              Des milliers de restaurants, coiffeurs et instituts de beauté n&apos;ont toujours aucun site web. Trouve-les, génère une démo bluffante et envoie-leur un message prêt à copier.
-            </p>
+            <span className="text-[11px] text-[#6E6E76] font-medium tabular-nums">
+              {[checklist.firstSearch, checklist.firstDemo, checklist.firstSent, checklist.firstOpened].filter(Boolean).length} / 4 terminées
+            </span>
+          </div>
 
-            {/* Les 3 étapes */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
-              <div className="p-3.5 rounded-2xl bg-neutral-950/60 border border-neutral-800">
-                <div className="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 font-bold text-xs flex items-center justify-center mb-2">
-                  <Search className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-sm text-white">1. Trouve</h3>
-                <p className="text-neutral-400 text-xs mt-0.5">
-                  Filtre les commerces sans site web dans ta ville.
-                </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            <div className={`p-3 rounded-[8px] border text-xs flex items-center gap-2.5 ${
+              checklist.firstSearch
+                ? "bg-[#1E1E22] border-[#2A2A2F] text-[#EDEDEF]"
+                : "bg-[#17171A] border-[#2A2A2F]/50 text-[#6E6E76]"
+            }`}>
+              <div className={`w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0 ${
+                checklist.firstSearch ? "bg-emerald-500/10 text-emerald-400" : "bg-[#1E1E22] text-[#6E6E76]"
+              }`}>
+                <Check className="w-3.5 h-3.5" />
               </div>
-
-              <div className="p-3.5 rounded-2xl bg-neutral-950/60 border border-neutral-800">
-                <div className="w-7 h-7 rounded-xl bg-violet-500/20 text-violet-300 font-bold text-xs flex items-center justify-center mb-2">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-sm text-white">2. Génère</h3>
-                <p className="text-neutral-400 text-xs mt-0.5">
-                  Un site mobile ultra-pro créé en 1 seul clic.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-neutral-950/60 border border-neutral-800">
-                <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center justify-center mb-2">
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-sm text-white">3. Signe</h3>
-                <p className="text-neutral-400 text-xs mt-0.5">
-                  Copie le message DM/SMS et envoie le lien.
-                </p>
-              </div>
+              <span className={checklist.firstSearch ? "line-through opacity-80" : ""}>
+                1re recherche
+              </span>
             </div>
 
-            <Link
-              href="/trouver"
-              className="inline-flex items-center justify-center gap-3 h-13 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-base shadow-xl shadow-indigo-600/30 transition-all active:scale-[0.98]"
-            >
-              <span>🚀 Trouver mon premier commerce</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+            <div className={`p-3 rounded-[8px] border text-xs flex items-center gap-2.5 ${
+              checklist.firstDemo
+                ? "bg-[#1E1E22] border-[#2A2A2F] text-[#EDEDEF]"
+                : "bg-[#17171A] border-[#2A2A2F]/50 text-[#6E6E76]"
+            }`}>
+              <div className={`w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0 ${
+                checklist.firstDemo ? "bg-emerald-500/10 text-emerald-400" : "bg-[#1E1E22] text-[#6E6E76]"
+              }`}>
+                <Check className="w-3.5 h-3.5" />
+              </div>
+              <span className={checklist.firstDemo ? "line-through opacity-80" : ""}>
+                1re démo générée
+              </span>
+            </div>
+
+            <div className={`p-3 rounded-[8px] border text-xs flex items-center gap-2.5 ${
+              checklist.firstSent
+                ? "bg-[#1E1E22] border-[#2A2A2F] text-[#EDEDEF]"
+                : "bg-[#17171A] border-[#2A2A2F]/50 text-[#6E6E76]"
+            }`}>
+              <div className={`w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0 ${
+                checklist.firstSent ? "bg-emerald-500/10 text-emerald-400" : "bg-[#1E1E22] text-[#6E6E76]"
+              }`}>
+                <Check className="w-3.5 h-3.5" />
+              </div>
+              <span className={checklist.firstSent ? "line-through opacity-80" : ""}>
+                1er message copié
+              </span>
+            </div>
+
+            <div className={`p-3 rounded-[8px] border text-xs flex items-center gap-2.5 ${
+              checklist.firstOpened
+                ? "bg-[#1E1E22] border-[#2A2A2F] text-[#EDEDEF]"
+                : "bg-[#17171A] border-[#2A2A2F]/50 text-[#6E6E76]"
+            }`}>
+              <div className={`w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0 ${
+                checklist.firstOpened ? "bg-emerald-500/10 text-emerald-400" : "bg-[#1E1E22] text-[#6E6E76]"
+              }`}>
+                <Check className="w-3.5 h-3.5" />
+              </div>
+              <span className={checklist.firstOpened ? "line-through opacity-80" : ""}>
+                1re ouverture commerçant
+              </span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* CONSEIL PRO POUR LES DÉBUTANTS TIKTOK */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-neutral-900/60 border border-neutral-800 flex items-start gap-3.5">
-        <div className="w-9 h-9 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-          <Sparkles className="w-5 h-5" />
-        </div>
-        <div className="text-xs sm:text-sm text-neutral-300">
-          <strong className="text-white block font-semibold mb-0.5">
-            Astuce de prospection pour débutant :
-          </strong>
-          Cible en priorité les <strong>coiffeurs, barbers et restaurants</strong> ayant entre 15 et 80 avis positifs sur Google. Ils ont déjà des clients fidèles mais perdent des réservations chaque semaine faute de site web mobile.
-        </div>
+      {/* ASTUCE DE PROSPECTION SANS FAIT INVENTÉ */}
+      <div className="p-4 rounded-[12px] bg-[#17171A] border border-[#2A2A2F] text-xs text-[#A0A0A8] leading-relaxed">
+        <strong className="text-[#EDEDEF] font-medium block mb-1">
+          Conseil de ciblage :
+        </strong>
+        Cible en priorité les coiffeurs, barbiers et restaurants ayant entre 15 et 80 avis sur Google : ils disposent déjà d&apos;une clientèle établie et d&apos;un bouche-à-oreille actif, mais leur absence sur le web mobile les rend invisibles aux nouveaux clients qui effectuent une recherche locale.
       </div>
 
-      {/* SECTION ACTIVITÉ RÉCENTE / PROSPECTS */}
-      <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base sm:text-lg font-bold text-white">
+      {/* ACTIVITÉ RÉCENTE (VUE LISTE DENSE) */}
+      <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-[#EDEDEF]">
             Prospects récents
           </h2>
           {recentProspects.length > 0 && (
             <Link
               href="/prospects"
-              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+              className="text-xs text-[#6C5CE7] hover:underline"
             >
-              Voir tout ({stats.prospectsCount}) →
+              Voir tout ({allProspects.length})
             </Link>
           )}
         </div>
 
         {recentProspects.length === 0 ? (
-          <div className="py-10 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-800 text-neutral-400 flex items-center justify-center mx-auto mb-3">
-              <Compass className="w-6 h-6" />
-            </div>
-            <p className="text-sm font-semibold text-white">
-              Aucun prospect pour le moment
-            </p>
-            <p className="text-xs text-neutral-400 max-w-sm mx-auto mt-1 mb-4">
-              Dès que tu auras lancé ta première recherche, tes commerces ciblés et leurs démos apparaîtront ici.
-            </p>
+          <div className="py-8 text-center text-xs text-[#6E6E76]">
+            <p>Aucun prospect pour le moment.</p>
             <Link
               href="/trouver"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-xs transition-colors"
+              className="mt-2 inline-flex items-center gap-1.5 text-[#EDEDEF] hover:underline"
             >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Lancer une recherche de commerces</span>
+              Lancer une recherche de commerces →
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-neutral-800">
-            {recentProspects.map((p: any) => {
+          <div className="divide-y divide-[#2A2A2F]">
+            {recentProspects.map((p) => {
               const demo = p.demos && p.demos[0]
               const viewsCount = demo?.views_count || 0
               const isSigned = p.status === "signe"
-              const isInterested = p.status === "interesse"
 
               return (
                 <div
                   key={p.id}
-                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors">
-                        {p.name}
-                      </h4>
+                      <span className="font-medium text-xs text-[#EDEDEF] truncate">
+                        {normalizeBusinessName(p.name)}
+                      </span>
                       {viewsCount > 0 && (
-                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          <span>{viewsCount} vue{viewsCount > 1 ? "s" : ""}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-[4px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tabular-nums">
+                          {viewsCount} vue{viewsCount > 1 ? "s" : ""}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      {p.category === "restaurant" ? "Restaurant" : p.category === "barber" ? "Barber" : "Institut"} • {p.city || "Ville non précisée"}
+                    <p className="text-[11px] text-[#6E6E76] mt-0.5">
+                      {p.category === "restaurant" ? "Restaurant" : p.category === "barber" ? "Barber" : "Institut"} • {p.city || "France"}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span
-                      className={`text-[11px] px-2.5 py-1 rounded-full font-bold ${
+                      className={`text-[11px] px-2 py-0.5 rounded-[4px] font-medium ${
                         isSigned
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                          : isInterested
-                          ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                           : p.status === "demo_envoyee"
-                          ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                          : "bg-neutral-800 text-neutral-300"
+                          ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                          : p.status === "interesse"
+                          ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                          : p.status === "perdu"
+                          ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                          : "bg-[#1E1E22] text-[#A0A0A8] border border-[#2A2A2F]"
                       }`}
                     >
                       {p.status === "signe"
-                        ? "🤝 Signé"
+                        ? "Signé"
                         : p.status === "interesse"
-                        ? "🔥 Intéressé"
+                        ? "Intéressé"
                         : p.status === "demo_envoyee"
-                        ? "📤 Démo envoyée"
+                        ? "Démo envoyée"
                         : p.status === "perdu"
-                        ? "❌ Perdu"
-                        : "⏳ À contacter"}
+                        ? "Perdu"
+                        : "À contacter"}
                     </span>
 
                     {demo && (
                       <Link
                         href={`/prospecter?demo_id=${demo.id}`}
-                        className="h-8 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs flex items-center gap-1 transition-colors"
+                        className="h-7 px-2.5 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-[11px] font-medium flex items-center gap-1 border border-[#2A2A2F] transition-colors"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" />
+                        <MessageSquare className="w-3 h-3 text-[#6E6E76]" />
                         <span>Messages</span>
                       </Link>
                     )}
