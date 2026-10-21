@@ -4,6 +4,14 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { isStripeConfigured } from "@/lib/stripe/stripe"
 
 export async function POST(request: NextRequest) {
+  // Action strictement interdite en production : renvoie 403 immédiatement
+  if (process.env.NODE_ENV !== "development") {
+    return NextResponse.json(
+      { error: "Action strictement interdite en production" },
+      { status: 403 }
+    )
+  }
+
   try {
     const supabase = await createClient()
     const {
@@ -12,14 +20,6 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
-    }
-
-    // Action strictement interdite en production
-    if (process.env.NODE_ENV !== "development") {
-      return NextResponse.json(
-        { error: "Action strictement interdite en production" },
-        { status: 403 }
-      )
     }
 
     const { targetStatus } = await request.json()
