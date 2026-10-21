@@ -181,7 +181,7 @@ export default function AccountSettingsForm({
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 onBlur={() => setLastName(capitalize(lastName.trim()))}
-                placeholder="Martin"
+                placeholder=""
                 className="w-full h-9 px-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-[#EDEDEF] placeholder-[#6E6E76] text-xs outline-none focus:border-[#6C5CE7] transition-colors"
               />
             </div>
@@ -198,8 +198,9 @@ export default function AccountSettingsForm({
               id="account-email"
               type="email"
               value={email}
+              readOnly
               disabled
-              className="w-full h-9 px-3 rounded-[8px] bg-[#121214] border border-[#2A2A2F] text-[#6E6E76] text-xs cursor-not-allowed outline-none"
+              className="w-full h-9 px-3 rounded-[8px] bg-[#0C0C0E] border border-[#1F1F23] text-[#55555C] text-xs cursor-not-allowed select-none outline-none"
             />
             <p className="text-[11px] text-[#6E6E76] mt-1">
               L&apos;adresse email est associée à ton compte et sert pour tes connexions.

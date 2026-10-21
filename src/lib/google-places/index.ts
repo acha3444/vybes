@@ -22,6 +22,7 @@ export interface PlaceResult {
 interface CacheEntry {
   timestamp: number
   data: PlaceResult[]
+  source: "google_places_api" | "sirene_entreprises"
 }
 
 const searchCache = new Map<string, CacheEntry>()
@@ -130,14 +131,14 @@ export async function searchPlacesWithoutWebsite(
   city: string,
   category: "restaurant" | "barber" | "beauty" | "all" = "all",
   includeSurroundings: boolean = false
-): Promise<{ places: PlaceResult[]; source: "google_places_api" | "google_maps_data"; cityDisplay: string }> {
+): Promise<{ places: PlaceResult[]; source: "google_places_api" | "sirene_entreprises"; cityDisplay: string }> {
   const normalizedCity = city.trim().toLowerCase()
   const cacheKey = `${normalizedCity}_${category}_${includeSurroundings ? "surroundings" : "strict"}`
 
   // 1. Vérification du cache 24h
   const cached = searchCache.get(cacheKey)
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return { places: cached.data, source: "google_maps_data", cityDisplay: normalizeCityName(city) }
+    return { places: cached.data, source: cached.source, cityDisplay: normalizeCityName(city) }
   }
 
   // 2. Géocodage précis de la commune
@@ -152,7 +153,7 @@ export async function searchPlacesWithoutWebsite(
     try {
       const places = await searchViaGooglePlaces(resolvedCityName, category, apiKey, geo, includeSurroundings)
       places.sort((a, b) => (b.userRatingsTotal || 0) - (a.userRatingsTotal || 0))
-      searchCache.set(cacheKey, { timestamp: Date.now(), data: places })
+      searchCache.set(cacheKey, { timestamp: Date.now(), data: places, source: "google_places_api" })
       return { places, source: "google_places_api", cityDisplay: resolvedCityName }
     } catch (e) {
       console.error("Erreur Google Places API :", e)
@@ -160,6 +161,8 @@ export async function searchPlacesWithoutWebsite(
   }
 
   // 4. RECHERCHE DE DONNÉES LOCALES (Base Sirene / API Entreprises ouverte)
+  // RÈGLE ABSOLUE : Aucune donnée inventée. Si l'API Entreprises ne fournit pas de téléphone,
+  // de note ou d'avis, ils sont strictement à null ou 0.
   try {
     const categoriesToSearch =
       category === "all"
@@ -235,13 +238,7 @@ export async function searchPlacesWithoutWebsite(
         const lat = siege.latitude ? parseFloat(siege.latitude) : geo?.lat || null
         const lng = siege.longitude ? parseFloat(siege.longitude) : geo?.lng || null
 
-        const lastDigit = parseInt(siege.siret.slice(-2), 10) || 45
-        const rating = Number((4.3 + (lastDigit % 6) * 0.1).toFixed(1))
-        const reviewCount = 18 + (lastDigit * 2)
-
-        const dept = siege.departement || "01"
-        const phone = `0${dept.startsWith("75") || dept.startsWith("92") ? "1" : dept.startsWith("69") ? "4" : dept.startsWith("13") ? "4" : dept.startsWith("33") ? "5" : "4"} ${siege.siret.slice(2, 4)} ${siege.siret.slice(4, 6)} ${siege.siret.slice(6, 8)} ${siege.siret.slice(8, 10)}`
-
+        // Zéro invention : l'INSEE ne fournit ni téléphone, ni avis, ni horaires.
         allPlaces.push({
           id: `siret_${siege.siret}`,
           name: cleanName,
@@ -249,21 +246,12 @@ export async function searchPlacesWithoutWebsite(
           categoryDisplay,
           address,
           city: normalizeCityName(siege.libelle_commune || resolvedCityName),
-          phone,
-          rating,
-          userRatingsTotal: reviewCount,
+          phone: null, // Aucun faux numéro généré
+          rating: null, // Aucune fausse note générée
+          userRatingsTotal: 0, // Aucun faux avis généré
           hasWebsite: false,
           websiteUri: null,
-          openingHours:
-            cat === "restaurant"
-              ? [
-                  "Mardi - Samedi : 12h00 - 14h30, 19h00 - 22h30",
-                  "Dimanche & Lundi : Fermé",
-                ]
-              : [
-                  "Mardi - Samedi : 09h30 - 19h00",
-                  "Dimanche & Lundi : Fermé",
-                ],
+          openingHours: [],
           location:
             lat && lng
               ? {
@@ -282,14 +270,25 @@ export async function searchPlacesWithoutWebsite(
     }
     const finalResults = Array.from(uniqueMap.values())
 
-    // Tri par nombre d'avis décroissant
-    finalResults.sort((a, b) => (b.userRatingsTotal || 0) - (a.userRatingsTotal || 0))
+    // Tri par nom alphabétique en l'absence d'avis
+    finalResults.sort((a, b) => a.name.localeCompare(b.name))
 
-    searchCache.set(cacheKey, { timestamp: Date.now(), data: finalResults })
-    return { places: finalResults, source: "google_maps_data", cityDisplay: resolvedCityName }
+    // Log console serveur pour inspection transparente
+    console.log(`\n======================================================`)
+    console.log(`[Base Entreprises (INSEE / SIRENE)] Recherche : "${category}" à "${resolvedCityName}"`)
+    console.log(`[Base Entreprises (INSEE / SIRENE)] Établissements trouvés (${finalResults.length}) :`)
+    finalResults.slice(0, 10).forEach((p, idx) => {
+      console.log(
+        `  #${idx + 1} | Nom: "${p.name}" | Ville: "${p.city}" | Tél: ${p.phone || "Non renseigné"} | Site: ${p.websiteUri || "Non renseigné"}`
+      )
+    })
+    console.log(`======================================================\n`)
+
+    searchCache.set(cacheKey, { timestamp: Date.now(), data: finalResults, source: "sirene_entreprises" })
+    return { places: finalResults, source: "sirene_entreprises", cityDisplay: resolvedCityName }
   } catch (error) {
     console.error("Erreur recherche commerces :", error)
-    return { places: [], source: "google_maps_data", cityDisplay: resolvedCityName }
+    return { places: [], source: "sirene_entreprises", cityDisplay: resolvedCityName }
   }
 }
 
@@ -339,6 +338,16 @@ async function searchViaGooglePlaces(
   const data = await response.json()
   const rawPlaces = data.places || []
   const normalizedCity = city.toLowerCase()
+
+  // Log serveur pour comparaison manuelle avec Google Maps
+  console.log(`\n======================================================`)
+  console.log(`[Google Places API (New)] Recherche brute pour "${query}" : ${rawPlaces.length} établissements reçus`)
+  rawPlaces.forEach((p: any, idx: number) => {
+    console.log(
+      `  #${idx + 1} | Nom: "${p.displayName?.text || 'Sans nom'}" | Tél: ${p.nationalPhoneNumber || 'Non renseigné'} | Site: ${p.websiteUri || 'ABSENT (sans site web)'} | Note: ${p.rating ? `${p.rating} (${p.userRatingCount || 0} avis)` : 'Non renseignée'}`
+    )
+  })
+  console.log(`======================================================\n`)
 
   const filteredPlaces = rawPlaces.filter((p: any) => {
     // 1. Uniquement ceux sans site internet

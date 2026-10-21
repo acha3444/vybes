@@ -362,7 +362,7 @@ export default function ProspectsTracker({
           <Users className="w-10 h-10 text-[#6E6E76] mx-auto mb-2" />
           <h3 className="text-sm font-semibold text-[#EDEDEF]">
             {prospects.length === 0
-              ? "Aucun prospect dans le pipeline"
+              ? "Aucun prospect pour l'instant"
               : "Aucun résultat pour ce filtre"}
           </h3>
           <p className="text-xs text-[#A0A0A8] max-w-sm mx-auto mt-1 mb-4">

@@ -51,6 +51,7 @@ export default function TrouverPage() {
   const [dailyLimit, setDailyLimit] = useState(30)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [isQuotaReached, setIsQuotaReached] = useState(false)
+  const [searchSource, setSearchSource] = useState<"google_places_api" | "sirene_entreprises">("google_places_api")
 
   // Chargement des prospects existants pour identifier ceux déjà prospectés
   useEffect(() => {
@@ -110,6 +111,9 @@ export default function TrouverPage() {
       if (data.places) {
         setResults(data.places)
         setSearchedCity(data.cityDisplay || normalizeCityName(trimmed))
+      }
+      if (data.source) {
+        setSearchSource(data.source)
       }
       if (typeof data.remaining === "number") {
         setRemainingSearches(data.remaining)
@@ -178,9 +182,15 @@ export default function TrouverPage() {
               {remainingSearches} / {dailyLimit} recherches restantes
             </span>
           )}
-          <span className="text-[11px] text-[#6E6E76]">
-            Données issues de Google Maps
-          </span>
+          {searchSource === "google_places_api" ? (
+            <span className="text-[11px] text-[#6E6E76]">
+              Données issues de Google Maps
+            </span>
+          ) : (
+            <span className="text-[11px] text-[#A0A0A8] bg-[#1E1E22] px-2 py-0.5 rounded-[4px] border border-[#2A2A2F]">
+              Base Entreprises (INSEE)
+            </span>
+          )}
         </div>
       </div>
 
@@ -456,10 +466,15 @@ export default function TrouverPage() {
                           </span>
                         </>
                       )}
-                      {place.phone && (
+                      {place.phone ? (
                         <>
                           <span>•</span>
                           <span className="text-[#A0A0A8]">{place.phone}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>•</span>
+                          <span className="text-[#6E6E76]">Tél. non renseigné</span>
                         </>
                       )}
                     </div>

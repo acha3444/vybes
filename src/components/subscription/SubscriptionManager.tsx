@@ -163,8 +163,8 @@ export default function SubscriptionManager({
               <span>Vybe Pro actif</span>
             </span>
           ) : isTrial ? (
-            <span className="px-2.5 py-1 rounded-[6px] bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs font-medium tabular-nums">
-              Essai gratuit ({daysLeft} {daysLeft > 1 ? "jours restants" : "jour restant"})
+            <span className="px-2.5 py-1 rounded-[6px] bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs font-medium">
+              Essai jusqu&apos;au {formattedTrialEndDate}
             </span>
           ) : (
             <span className="px-2.5 py-1 rounded-[6px] bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-medium flex items-center gap-1.5">
@@ -184,7 +184,9 @@ export default function SubscriptionManager({
             {isActive
               ? "Ton abonnement est actif. Tu bénéficies de la création et du suivi de démos pour tes prospects."
               : isTrial
-              ? `Ajoute ta carte maintenant, tu ne seras débité qu'à la fin de ton essai le ${formattedTrialEndDate}.`
+              ? (!isConfigured
+                  ? `Ton essai gratuit se termine le ${formattedTrialEndDate}.`
+                  : `Ajoute ta carte maintenant, tu ne seras débité qu'à la fin de ton essai le ${formattedTrialEndDate}.`)
               : "Ton accès d'essai a expiré. Active ton abonnement pour continuer à générer des démos personnalisées."}
           </p>
         </div>

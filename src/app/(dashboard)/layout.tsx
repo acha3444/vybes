@@ -50,6 +50,11 @@ export default async function DashboardLayout({
 
   const daysLeft = getDaysRemaining(profile.trial_ends_at)
   const isActive = profile.subscription_status === "active"
+  const formattedTrialEnd = profile.trial_ends_at
+    ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" }).format(
+        new Date(profile.trial_ends_at)
+      )
+    : "26 octobre"
 
   const capitalizedFullName = profile.full_name
     ? profile.full_name
@@ -83,8 +88,8 @@ export default async function DashboardLayout({
                   Actif
                 </span>
               ) : (
-                <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium tabular-nums">
-                  {daysLeft === 1 ? "1 jour restant" : `${daysLeft} jours restants`}
+                <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium">
+                  Essai jusqu&apos;au {formattedTrialEnd}
                 </span>
               )}
             </div>
