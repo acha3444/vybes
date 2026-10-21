@@ -60,15 +60,15 @@ export function HeroVisual() {
               <span className="text-[#6E6E76] tabular-nums">28 trouvés</span>
             </div>
 
-            {/* Fausse liste d'un commerce réel avec ses vraies métadonnées */}
+            {/* Liste d'établissements clairement fictifs */}
             <div className="p-3 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h4 className="font-semibold text-sm text-[#EDEDEF]">
-                    Bistrot Saint-Paul
+                    Le Zinc Imaginaire
                   </h4>
                   <p className="text-[11px] text-[#A0A0A8]">
-                    Restaurant français • 18 rue Juiverie, 69005 Lyon
+                    Bistrot de quartier (fictif) • 42 rue des Illusions, 69000 Lyon
                   </p>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium whitespace-nowrap">
@@ -79,8 +79,8 @@ export function HeroVisual() {
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-1.5 text-xs text-[#EDEDEF] tabular-nums">
                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                  <span className="font-semibold">4.7</span>
-                  <span className="text-[#6E6E76]">(74 avis Google)</span>
+                  <span className="font-semibold">4.8</span>
+                  <span className="text-[#6E6E76]">(64 avis)</span>
                 </div>
 
                 <button
@@ -98,10 +98,10 @@ export function HeroVisual() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h4 className="font-semibold text-sm text-[#EDEDEF]">
-                    L&apos;Ardoise des Halles
+                    La Table des Songes
                   </h4>
                   <p className="text-[11px] text-[#A0A0A8]">
-                    Bistrot de quartier • 102 cours Lafayette, 69003 Lyon
+                    Cuisine de saison (fictive) • 7 allée des Chimères, 69000 Lyon
                   </p>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium whitespace-nowrap">
@@ -131,19 +131,19 @@ export function HeroVisual() {
 
               <div className="rounded-[8px] bg-stone-900 text-stone-100 p-4 space-y-2 border border-stone-800">
                 <span className="text-[10px] text-amber-400 font-medium block">
-                  Bistrot traditionnel • Lyon 5e
+                  Bistrot traditionnel • Établissement fictif
                 </span>
                 <h4 className="text-base font-bold text-white tracking-tight">
-                  Bistrot Saint-Paul
+                  Le Zinc Imaginaire
                 </h4>
                 <p className="text-[11px] text-stone-300 leading-relaxed">
-                  Cuisine de marché, produits frais du terroir lyonnais.
+                  Cuisine de marché, produits frais du terroir imaginaire.
                 </p>
 
                 <div className="pt-2 flex items-center gap-2">
                   <div className="h-7 px-3 rounded-[6px] bg-[#c2410c] text-white text-[11px] font-medium flex items-center gap-1">
                     <Phone className="w-3 h-3" />
-                    <span>Appeler • 04 78 28 00 00</span>
+                    <span>Appeler • 04 00 00 00 00</span>
                   </div>
                 </div>
               </div>
@@ -155,7 +155,7 @@ export function HeroVisual() {
                 </div>
                 <div className="p-2 rounded-[6px] bg-[#17171A] border border-[#2A2A2F]">
                   <MapPin className="w-3 h-3 text-[#EDEDEF] mb-1" />
-                  <span>18 rue Juiverie, Lyon 5e</span>
+                  <span>42 rue des Illusions, Lyon</span>
                 </div>
               </div>
             </div>
@@ -180,10 +180,10 @@ export function HeroVisual() {
 
             <div className="p-3.5 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-xs text-[#EDEDEF] leading-relaxed space-y-2">
               <p>
-                Bonjour, c&apos;est Achraf. J&apos;ai préparé un aperçu de site web mobile pour Bistrot Saint-Paul à Lyon afin de présenter votre carte, vos horaires et votre contact direct :
+                Bonjour, c&apos;est Alex. J&apos;ai préparé un aperçu de site web mobile pour Le Zinc Imaginaire à Lyon afin de présenter votre carte, vos horaires et votre contact direct :
               </p>
               <div className="p-2 rounded-[6px] bg-[#17171A] text-[#6C5CE7] font-mono text-[11px] select-all border border-[#2A2A2F]">
-                https://vybe.fr/d/bistrot-saint-paul
+                https://vybe.fr/d/zinc-imaginaire
               </div>
               <p className="text-[#A0A0A8]">
                 Vous pouvez y jeter un coup d&apos;œil quand vous avez deux minutes, c&apos;est sans engagement. Bonne journée.
@@ -205,7 +205,7 @@ export function HeroVisual() {
 
         {/* Pied de carte avec statut */}
         <div className="pt-3 border-t border-[#2A2A2F] flex items-center justify-between text-[11px] text-[#6E6E76]">
-          <span>Flux réel sans artifice</span>
+          <span>Exemple</span>
           <span className="tabular-nums">Étape {activeStep} sur 3</span>
         </div>
       </div>

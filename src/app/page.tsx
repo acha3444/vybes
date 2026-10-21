@@ -106,7 +106,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-sm sm:text-base text-[#A0A0A8] max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Identifie les commerces de ta ville sans présence web mobile, prépare leur site de démonstration en situation réelle et contacte-les avec un aperçu concret.
+              Trouve les commerces de ta ville qui n&apos;ont pas de site, crée leur démo en une minute et envoie-leur le lien.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
@@ -165,7 +165,7 @@ export default function HomePage() {
       </section>
 
       {/* COMMENT ÇA MARCHE : 3 ÉTAPES CLAIRES */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-10">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-8">
         <div className="space-y-2">
           <span className="text-xs font-medium text-[#6C5CE7]">
             Méthode de prospection
