@@ -90,6 +90,7 @@ export default function ProspectsTracker({
   const [deleteProspect, setDeleteProspect] = useState<ProspectWithDemo | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [proposeSentModal, setProposeSentModal] = useState<string | null>(null)
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
 
   // Calcul unique et cohérent des KPIs
   const kpis = useMemo(() => calculateUnifiedKpis(prospects), [prospects])
@@ -381,6 +382,14 @@ export default function ProspectsTracker({
         </div>
       ) : (
         <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] divide-y divide-[#2A2A2F] overflow-hidden">
+          {/* EN-TÊTE FIXE SUR GRAND ÉCRAN */}
+          <div className="hidden lg:grid lg:grid-cols-[minmax(0,1.2fr)_140px_160px_auto] items-center gap-4 px-4 py-2.5 bg-[#121214] text-[11px] font-medium text-[#6E6E76]">
+            <div>Commerce</div>
+            <div>Statut</div>
+            <div>État de la démo</div>
+            <div className="text-right">Actions</div>
+          </div>
+
           {filtered.map((prospect) => {
             const demo = prospect.demos && prospect.demos[0]
             const viewsCount = demo?.views_count || 0
@@ -390,6 +399,7 @@ export default function ProspectsTracker({
             const isCopied = copiedId === prospect.id
             const demoUrl = demo ? getDemoUrl(demo.slug) : ""
             const statusStyle = STATUS_STYLES[prospect.status]
+            const hasNote = Boolean(prospect.notes && prospect.notes.trim())
 
             return (
               <div
@@ -398,10 +408,10 @@ export default function ProspectsTracker({
                   isLost ? "opacity-45 bg-[#121214]" : ""
                 }`}
               >
-                {/* LIGNE PRINCIPALE DU PROSPECT */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                  {/* IDENTITÉ DU COMMERCE */}
-                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                {/* GRILLE CSS FIXE : (nom + infos | statut | état de la démo | actions) */}
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_140px_160px_auto] items-center gap-3 lg:gap-4">
+                  {/* COLONNE 1 : NOM + INFOS */}
+                  <div className="flex items-start gap-2.5 min-w-0">
                     {hasViewed && !isLost && (
                       <span
                         className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"
@@ -409,17 +419,37 @@ export default function ProspectsTracker({
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 min-w-0">
                         <span
                           className={`font-semibold text-sm truncate ${
                             isLost ? "line-through text-[#A0A0A8]" : "text-[#EDEDEF]"
                           }`}
+                          title={prospect.name}
                         >
                           {normalizeBusinessName(prospect.name)}
                         </span>
-                        <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-[#1E1E22] text-[#A0A0A8] border border-[#2A2A2F]">
+                        <span className="shrink-0 whitespace-nowrap text-[11px] px-2 py-0.5 rounded-[4px] bg-[#1E1E22] text-[#A0A0A8] border border-[#2A2A2F]">
                           {CATEGORY_LABELS[prospect.category] || prospect.category}
                         </span>
+                        {hasNote && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedNotes((prev) => ({
+                                ...prev,
+                                [prospect.id]: !prev[prospect.id],
+                              }))
+                            }
+                            aria-label="Consulter la note privée"
+                            title={`Note : ${prospect.notes}`}
+                            className="shrink-0 flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-[4px] bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+                          >
+                            <StickyNote className="w-3 h-3 text-amber-400" />
+                            <span className="hidden sm:inline truncate max-w-[120px]">
+                              {prospect.notes}
+                            </span>
+                          </button>
+                        )}
                       </div>
                       <p className="text-xs text-[#6E6E76] mt-0.5 flex items-center gap-2 flex-wrap">
                         {prospect.city && (
@@ -443,14 +473,16 @@ export default function ProspectsTracker({
                     </div>
                   </div>
 
-                  {/* STATUT DU PROSPECT */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  {/* COLONNE 2 : STATUT DU PROSPECT (LARGEUR FIXE 140px, POSITION IDENTIQUE PARTOUT) */}
+                  <div className="w-full lg:w-[140px] shrink-0">
                     <select
                       value={prospect.status}
                       onChange={(e) =>
                         handleStatusChange(prospect.id, e.target.value as ProspectStatus)
                       }
-                      className={`h-8 px-2.5 rounded-[6px] text-xs font-medium border outline-none cursor-pointer ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                      aria-label="Statut du prospect"
+                      title="Modifier le statut du prospect"
+                      className={`w-full h-8 px-2.5 rounded-[6px] text-xs font-medium border outline-none cursor-pointer ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
                     >
                       {(Object.keys(STATUS_LABELS) as ProspectStatus[]).map((st) => (
                         <option key={st} value={st} className="bg-[#17171A] text-[#EDEDEF]">
@@ -460,8 +492,8 @@ export default function ProspectsTracker({
                     </select>
                   </div>
 
-                  {/* VUES DÉMO */}
-                  <div className="text-xs text-[#A0A0A8] shrink-0 min-w-[180px]">
+                  {/* COLONNE 3 : ÉTAT DE LA DÉMO (LARGEUR FIXE 160px) */}
+                  <div className="text-xs text-[#A0A0A8] w-full lg:w-[160px] shrink-0">
                     {demo ? (
                       <div>
                         {viewsCount === 0 ? (
@@ -482,15 +514,16 @@ export default function ProspectsTracker({
                     )}
                   </div>
 
-                  {/* ACTIONS DENSES */}
-                  <div className="flex items-center gap-1.5 shrink-0 self-start lg:self-center">
+                  {/* COLONNE 4 : ACTIONS (SEULEMENT COPIER LE LIEN & MESSAGES VISIBLES, RESTE DANS LE MENU "…") */}
+                  <div className="flex items-center gap-1.5 justify-start lg:justify-end shrink-0">
                     {!isLost && demo && (
                       <>
                         <button
                           type="button"
                           onClick={() => handleCopyDemoLink(demo.slug, prospect)}
+                          aria-label="Copier le lien de la démo"
+                          title="Copier le lien de la démo"
                           className="h-8 px-2.5 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium flex items-center gap-1.5 border border-[#2A2A2F] transition-colors"
-                          title="Copier le lien démo garanti"
                         >
                           {isCopied ? (
                             <>
@@ -500,36 +533,19 @@ export default function ProspectsTracker({
                           ) : (
                             <>
                               <Copy className="w-3.5 h-3.5 text-[#6E6E76]" />
-                              <span>Copier</span>
+                              <span>Copier le lien</span>
                             </>
                           )}
                         </button>
 
                         <Link
                           href={`/prospecter?demo_id=${demo.id}`}
-                          className="h-8 px-2.5 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium flex items-center gap-1.5 border border-[#2A2A2F] transition-colors"
+                          aria-label="Messages de prospection"
                           title="Messages de prospection"
+                          className="h-8 px-2.5 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] text-xs font-medium flex items-center gap-1.5 border border-[#2A2A2F] transition-colors"
                         >
                           <MessageSquare className="w-3.5 h-3.5 text-[#6E6E76]" />
                           <span>Messages</span>
-                        </Link>
-
-                        <a
-                          href={demoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="h-8 w-8 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] flex items-center justify-center border border-[#2A2A2F] transition-colors"
-                          title="Ouvrir la démo"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5 text-[#6E6E76]" />
-                        </a>
-
-                        <Link
-                          href={`/demos/${demo.id}/edit`}
-                          className="h-8 w-8 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] flex items-center justify-center border border-[#2A2A2F] transition-colors"
-                          title="Modifier la démo"
-                        >
-                          <Edit3 className="w-3.5 h-3.5 text-[#6E6E76]" />
                         </Link>
                       </>
                     )}
@@ -537,45 +553,112 @@ export default function ProspectsTracker({
                     {!isLost && !demo && (
                       <Link
                         href={`/demos/creer?prospect_id=${prospect.id}`}
-                        className="h-8 px-2.5 rounded-[6px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white text-xs font-medium flex items-center gap-1 transition-colors"
+                        aria-label="Créer la démo de ce commerce"
+                        title="Créer la démo"
+                        className="h-8 px-2.5 rounded-[6px] border border-[#6C5CE7] text-[#6C5CE7] hover:bg-[#6C5CE7] hover:text-white text-xs font-medium flex items-center gap-1 transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Créer démo</span>
                       </Link>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedNotes((prev) => ({
-                          ...prev,
-                          [prospect.id]: !prev[prospect.id],
-                        }))
-                      }
-                      className={`h-8 w-8 rounded-[6px] flex items-center justify-center border transition-colors ${
-                        prospect.notes
-                          ? "bg-[#1E1E22] text-[#EDEDEF] border-[#6C5CE7]"
-                          : "bg-[#1E1E22] text-[#6E6E76] hover:text-[#EDEDEF] border-[#2A2A2F]"
-                      }`}
-                      title={prospect.notes ? "Voir la note" : "Ajouter une note"}
-                    >
-                      <StickyNote className="w-3.5 h-3.5" />
-                    </button>
+                    {/* MENU "…" REGROUPANT OUVRIR / MODIFIER / NOTE / SUPPRIMER */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveMenuId(activeMenuId === prospect.id ? null : prospect.id)
+                        }
+                        aria-label="Menu d'options pour ce prospect"
+                        title="Plus d'actions"
+                        className="h-8 w-8 rounded-[6px] bg-[#1E1E22] hover:bg-[#2A2A2F] text-[#EDEDEF] flex items-center justify-center border border-[#2A2A2F] transition-colors relative"
+                      >
+                        <MoreVertical className="w-3.5 h-3.5 text-[#A0A0A8]" />
+                        {hasNote && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 right-1"
+                            title="Une note est enregistrée"
+                          />
+                        )}
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setDeleteProspect(prospect)}
-                      className="h-8 w-8 rounded-[6px] bg-transparent text-[#6E6E76] hover:text-red-400 hover:bg-[#1E1E22] flex items-center justify-center transition-colors"
-                      title="Supprimer ce prospect"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                      {activeMenuId === prospect.id && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-20"
+                            onClick={() => setActiveMenuId(null)}
+                          />
+                          <div className="absolute right-0 top-9 z-30 w-44 rounded-[8px] bg-[#17171A] border border-[#2A2A2F] shadow-xl py-1 text-xs divide-y divide-[#2A2A2F] animate-fade-in">
+                            <div className="py-0.5">
+                              {demo && (
+                                <>
+                                  <a
+                                    href={demoUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label="Ouvrir la démo dans un nouvel onglet"
+                                    title="Ouvrir la démo"
+                                    onClick={() => setActiveMenuId(null)}
+                                    className="flex items-center gap-2 px-3 py-2 text-[#EDEDEF] hover:bg-[#1E1E22] transition-colors"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5 text-[#6E6E76]" />
+                                    <span>Ouvrir la démo</span>
+                                  </a>
+                                  <Link
+                                    href={`/demos/${demo.id}/edit`}
+                                    aria-label="Modifier la démo"
+                                    title="Modifier la démo"
+                                    onClick={() => setActiveMenuId(null)}
+                                    className="flex items-center gap-2 px-3 py-2 text-[#EDEDEF] hover:bg-[#1E1E22] transition-colors"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5 text-[#6E6E76]" />
+                                    <span>Modifier la démo</span>
+                                  </Link>
+                                </>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setExpandedNotes((prev) => ({
+                                    ...prev,
+                                    [prospect.id]: !prev[prospect.id],
+                                  }))
+                                  setActiveMenuId(null)
+                                }}
+                                aria-label={hasNote ? "Consulter ou modifier la note" : "Ajouter une note"}
+                                title={hasNote ? "Consulter ou modifier la note" : "Ajouter une note"}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-[#EDEDEF] hover:bg-[#1E1E22] transition-colors text-left"
+                              >
+                                <StickyNote className="w-3.5 h-3.5 text-[#6E6E76]" />
+                                <span>{hasNote ? "Modifier la note" : "Ajouter une note"}</span>
+                              </button>
+                            </div>
+
+                            <div className="py-0.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeleteProspect(prospect)
+                                  setActiveMenuId(null)
+                                }}
+                                aria-label="Supprimer ce prospect et sa démo"
+                                title="Supprimer ce prospect"
+                                className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                <span>Supprimer</span>
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* NOTE PRIVÉE ÉTENDUE */}
                 {isNoteOpen && (
-                  <div className="mt-3 pt-3 border-t border-[#2A2A2F] flex flex-col sm:flex-row gap-2">
+                  <div className="mt-3 pt-3 border-t border-[#2A2A2F] flex flex-col sm:flex-row gap-2 animate-fade-in">
                     <input
                       type="text"
                       defaultValue={prospect.notes || ""}
@@ -586,12 +669,14 @@ export default function ProspectsTracker({
                         })
                       }
                       placeholder="Note privée (ex : gérant Karim, rappeler jeudi 15h)…"
+                      aria-label="Contenu de la note privée"
                       className="flex-1 h-8 px-3 rounded-[6px] bg-[#1E1E22] border border-[#2A2A2F] text-xs text-[#EDEDEF] placeholder-[#6E6E76] outline-none focus:border-[#6C5CE7]"
                     />
                     <button
                       type="button"
                       disabled={savingNoteId === prospect.id}
                       onClick={() => handleSaveNote(prospect.id)}
+                      aria-label="Enregistrer la note"
                       className="h-8 px-3 rounded-[6px] bg-[#2A2A2F] hover:bg-[#3A3A42] text-[#EDEDEF] text-xs font-medium transition-colors"
                     >
                       {savingNoteId === prospect.id ? "…" : "Enregistrer"}
