@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Récupérer le profil
     const { data: profile } = await adminSupabase
       .from("profiles")
-      .select("stripe_customer_id, full_name")
+      .select("stripe_customer_id, full_name, trial_ends_at, subscription_status")
       .eq("id", user.id)
       .single()
 
@@ -65,7 +65,27 @@ export async function POST(request: NextRequest) {
         ? `http://${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`
         : "http://localhost:3001")
 
-    // Création de la session Stripe Checkout avec 7 jours d'essai
+    // Calcul de la période d'essai restante : le freelance ne paie qu'à la fin de son essai
+    const isCurrentlyTrialing =
+      profile?.subscription_status === "trialing" &&
+      profile?.trial_ends_at &&
+      new Date(profile.trial_ends_at).getTime() > Date.now()
+
+    const remainingTrialDays = isCurrentlyTrialing
+      ? Math.max(1, Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+      : 0
+
+    const subscriptionData: Record<string, any> = {
+      metadata: {
+        supabase_uid: user.id,
+      },
+    }
+
+    if (isCurrentlyTrialing && remainingTrialDays > 0) {
+      subscriptionData.trial_period_days = remainingTrialDays
+    }
+
+    // Création de la session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
@@ -75,12 +95,7 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: {
-          supabase_uid: user.id,
-        },
-      },
+      subscription_data: subscriptionData,
       success_url: `${appUrl}/abonnement?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/abonnement?canceled=true`,
       metadata: {

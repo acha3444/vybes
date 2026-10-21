@@ -7,6 +7,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/trouver": "Trouver un commerce",
   "/prospects": "Mes prospects",
   "/abonnement": "Abonnement",
+  "/compte": "Mon compte",
   "/prospecter": "Prospection",
   "/demos/creer": "Nouvelle démo",
 }

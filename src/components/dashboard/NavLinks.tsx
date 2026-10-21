@@ -9,7 +9,7 @@ const LINKS = [
   { href: "/dashboard", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
   { href: "/trouver", label: "Trouver un commerce", short: "Trouver", icon: Compass },
   { href: "/prospects", label: "Mes prospects", short: "Prospects", icon: Users },
-  { href: "/abonnement", label: "Abonnement", short: "Compte", icon: CreditCard },
+  { href: "/abonnement", label: "Abonnement", short: "Abonnement", icon: CreditCard },
 ]
 
 function useIsActive() {

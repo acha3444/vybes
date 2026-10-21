@@ -51,6 +51,14 @@ export default async function DashboardLayout({
   const daysLeft = getDaysRemaining(profile.trial_ends_at)
   const isActive = profile.subscription_status === "active"
 
+  const capitalizedFullName = profile.full_name
+    ? profile.full_name
+        .trim()
+        .split(/\s+/)
+        .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ")
+    : "Mon compte"
+
   return (
     <div className="relative min-h-screen bg-[#0F0F11] text-[#EDEDEF] flex flex-col md:flex-row pb-16 md:pb-0 selection:bg-[#6C5CE7] selection:text-white">
       {/* SIDEBAR DESKTOP */}
@@ -89,21 +97,25 @@ export default async function DashboardLayout({
           <SidebarNav />
         </div>
 
-        {/* Footer Sidebar avec déconnexion */}
-        <div className="pt-3 border-t border-[#2A2A2F] flex items-center justify-between">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-7 h-7 rounded-[6px] bg-[#1E1E22] border border-[#2A2A2F] text-[#6C5CE7] font-semibold flex items-center justify-center text-xs shrink-0">
-              {profile.full_name?.charAt(0)?.toUpperCase() || "F"}
+        <div className="pt-3 border-t border-[#2A2A2F] flex items-center justify-between gap-2">
+          <Link
+            href="/compte"
+            title="Gérer mon compte"
+            aria-label="Accéder aux paramètres de mon compte"
+            className="flex items-center gap-2.5 overflow-hidden flex-1 group hover:opacity-90 transition-opacity"
+          >
+            <div className="w-7 h-7 rounded-[6px] bg-[#1E1E22] border border-[#2A2A2F] group-hover:border-[#6C5CE7]/60 text-[#6C5CE7] font-semibold flex items-center justify-center text-xs shrink-0 transition-colors">
+              {capitalizedFullName.charAt(0)?.toUpperCase() || "F"}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-xs font-medium text-[#EDEDEF] truncate">
-                {profile.full_name}
+            <div className="overflow-hidden min-w-0">
+              <p className="text-xs font-medium text-[#EDEDEF] group-hover:text-white truncate">
+                {capitalizedFullName}
               </p>
               <p className="text-[11px] text-[#6E6E76] truncate">
                 {profile.email}
               </p>
             </div>
-          </div>
+          </Link>
 
           <form action="/auth/deconnexion" method="POST">
             <button
