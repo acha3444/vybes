@@ -37,6 +37,7 @@ export default async function AbonnementPage({
       hasStripeCustomer={Boolean(profile?.stripe_customer_id)}
       isConfigured={configured}
       isPaywall={isPaywall}
+      isDev={process.env.NODE_ENV === "development"}
     />
   )
 }

@@ -14,10 +14,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
 
-    // Autorisé uniquement en local ou si Stripe n'est pas encore configuré avec de vraies clés
-    if (process.env.NODE_ENV === "production" && isStripeConfigured()) {
+    // Action strictement interdite en production
+    if (process.env.NODE_ENV !== "development") {
       return NextResponse.json(
-        { error: "Mode simulation désactivé en production" },
+        { error: "Action strictement interdite en production" },
         { status: 403 }
       )
     }

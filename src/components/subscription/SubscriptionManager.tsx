@@ -10,7 +10,6 @@ import {
   ExternalLink,
   Lock,
   RefreshCw,
-  Building2,
   Check,
 } from "lucide-react"
 
@@ -20,6 +19,7 @@ interface SubscriptionManagerProps {
   hasStripeCustomer: boolean
   isConfigured: boolean
   isPaywall: boolean
+  isDev?: boolean
 }
 
 export default function SubscriptionManager({
@@ -28,13 +28,13 @@ export default function SubscriptionManager({
   hasStripeCustomer,
   isConfigured,
   isPaywall,
+  isDev = false,
 }: SubscriptionManagerProps) {
   const router = useRouter()
   const [status, setStatus] = useState(initialStatus)
   const [currentTrialEnd, setCurrentTrialEnd] = useState<string | null>(trialEndsAt)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [showConfigModal, setShowConfigModal] = useState(false)
   const [simulationSuccess, setSimulationSuccess] = useState<string | null>(null)
 
   // Calcul des jours restants
@@ -49,6 +49,13 @@ export default function SubscriptionManager({
   const isTrial = status === "trialing" && daysLeft > 0
   const isExpired = !isActive && (!isTrial || daysLeft <= 0)
 
+  // Formatage de la date de fin d'essai en français
+  const formattedTrialEndDate = currentTrialEnd
+    ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" }).format(
+        new Date(currentTrialEnd)
+      )
+    : ""
+
   // Déclenchement Checkout ou Portail
   async function handleCheckoutOrPortal() {
     setIsLoading(true)
@@ -56,7 +63,8 @@ export default function SubscriptionManager({
 
     if (!isConfigured) {
       setIsLoading(false)
-      setShowConfigModal(true)
+      console.error("[Stripe] Configuration manquante : les clés Stripe ne sont pas définies côté serveur.")
+      setErrorMessage("Le paiement en ligne est temporairement indisponible.")
       return
     }
 
@@ -85,8 +93,10 @@ export default function SubscriptionManager({
     }
   }
 
-  // Simulation pour tester le paywall et le mode actif en dev
+  // Simulation pour tester le paywall et le mode actif en dev uniquement
   async function handleSimulate(targetStatus: "active" | "trial_expired" | "trial_fresh") {
+    if (!isDev) return
+
     setIsLoading(true)
     setErrorMessage(null)
     setSimulationSuccess(null)
@@ -102,7 +112,7 @@ export default function SubscriptionManager({
       if (data.success) {
         setStatus(data.profile.subscription_status)
         setCurrentTrialEnd(data.profile.trial_ends_at)
-        setSimulationSuccess(data.message)
+        setSimulationSuccess(data.message || "Statut simulé avec succès")
         router.refresh()
       } else {
         setErrorMessage(data.error || "Échec de la simulation.")
@@ -174,7 +184,7 @@ export default function SubscriptionManager({
             {isActive
               ? "Ton abonnement est actif. Tu bénéficies de la création et du suivi de démos pour tes prospects."
               : isTrial
-              ? `Tu profites actuellement de ton essai gratuit de 7 jours. Il te reste ${daysLeft} jour(s) pour générer des démos et contacter tes premiers commerçants.`
+              ? `Ajoute ta carte maintenant, tu ne seras débité qu'à la fin de ton essai le ${formattedTrialEndDate}.`
               : "Ton accès d'essai a expiré. Active ton abonnement pour continuer à générer des démos personnalisées."}
           </p>
         </div>
@@ -191,7 +201,7 @@ export default function SubscriptionManager({
           </div>
           <div className="flex items-center gap-2.5">
             <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-[#EDEDEF]">Suivi des consultations et alertes d&apos;ouverture</span>
+            <span className="text-[#EDEDEF]">Suivi des consultations et date de dernière ouverture</span>
           </div>
           <div className="flex items-center gap-2.5">
             <Check className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -214,6 +224,13 @@ export default function SubscriptionManager({
               <CreditCard className="w-4 h-4 text-[#A0A0A8]" />
               <span>Gérer mon moyen de paiement et mes factures</span>
               <ExternalLink className="w-3.5 h-3.5 text-[#6E6E76]" />
+            </button>
+          ) : !isConfigured ? (
+            <button
+              disabled
+              className="w-full h-10 rounded-[8px] bg-[#1E1E22] text-[#A0A0A8] font-medium text-xs flex items-center justify-center gap-2 border border-[#2A2A2F] cursor-not-allowed opacity-75"
+            >
+              <span>Paiement bientôt disponible</span>
             </button>
           ) : (
             <button
@@ -241,31 +258,11 @@ export default function SubscriptionManager({
         </div>
       </div>
 
-      {/* BOÎTE MODE ENVIRONNEMENT / TESTEUR */}
-      <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-4 sm:p-5 space-y-3.5">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] text-[#6C5CE7] shrink-0">
-            <Building2 className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-xs font-semibold text-[#EDEDEF] flex items-center gap-2">
-              <span>Configuration Stripe</span>
-              {!isConfigured && (
-                <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                  En attente de clés
-                </span>
-              )}
-            </h3>
-            <p className="text-[11px] text-[#A0A0A8] mt-1 leading-relaxed">
-              Le flux Stripe est branché. Dès que tes clés Stripe sont définies dans les variables d&apos;environnement, les paiements réels sont activés automatiquement.
-            </p>
-          </div>
-        </div>
-
-        {/* Boutons de simulation */}
-        <div className="pt-3 border-t border-[#2A2A2F]">
-          <p className="text-[11px] font-medium text-[#6E6E76] mb-2">
-            Simulateur d&apos;état (développement) :
+      {/* SIMULATEUR D'ÉTAT : RÉSERVÉ STRICTEMENT AU MODE DÉVELOPPEMENT */}
+      {isDev && (
+        <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] p-4 space-y-3">
+          <p className="text-[11px] font-medium text-[#6E6E76]">
+            Simulateur d&apos;état (développement local uniquement) :
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
@@ -309,47 +306,11 @@ export default function SubscriptionManager({
           </div>
 
           {simulationSuccess && (
-            <p className="text-xs text-emerald-400 font-medium mt-2 flex items-center gap-1.5">
+            <p className="text-xs text-emerald-400 font-medium mt-1 flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5" />
               <span>{simulationSuccess}</span>
             </p>
           )}
-        </div>
-      </div>
-
-      {/* MODAL CONFIGURATION STRIPE */}
-      {showConfigModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
-          <div className="bg-[#17171A] border border-[#2A2A2F] rounded-[12px] max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl">
-            <div className="w-10 h-10 rounded-[8px] bg-[#1E1E22] border border-[#2A2A2F] flex items-center justify-center text-[#6C5CE7]">
-              <Building2 className="w-5 h-5" />
-            </div>
-
-            <div>
-              <h3 className="text-base font-bold text-[#EDEDEF]">
-                Configuration Stripe requise
-              </h3>
-              <p className="text-xs text-[#A0A0A8] mt-1 leading-relaxed">
-                Les clés Stripe n&apos;ont pas encore été renseignées dans les variables d&apos;environnement.
-              </p>
-            </div>
-
-            <div className="bg-[#1E1E22] p-3 rounded-[8px] border border-[#2A2A2F] text-xs text-[#A0A0A8] space-y-2">
-              <p className="font-medium text-[#EDEDEF]">
-                Pour activer les abonnements réels :
-              </p>
-              <p>
-                Renseigne tes variables Stripe dans les paramètres Vercel ou dans <code className="text-[#EDEDEF]">.env.local</code>.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowConfigModal(false)}
-              className="w-full h-9 rounded-[8px] bg-[#6C5CE7] hover:bg-[#5B4BC4] text-white font-medium text-xs transition-colors"
-            >
-              Fermer
-            </button>
-          </div>
         </div>
       )}
     </div>

@@ -14,12 +14,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
 
-    // Si Stripe n'est pas encore configuré (ex: société en cours de création)
+    // Si Stripe n'est pas configuré sur le serveur
     if (!isStripeConfigured() || !stripe) {
+      console.error("[Stripe Checkout] Configuration manquante : les clés Stripe (STRIPE_SECRET_KEY, STRIPE_PRICE_ID_MONTHLY) ne sont pas définies.")
       return NextResponse.json({
         configured: false,
-        message: "Stripe n'est pas encore configuré avec des clés réelles.",
-      })
+        error: "Paiement bientôt disponible",
+      }, { status: 503 })
     }
 
     const adminSupabase = createAdminClient()
